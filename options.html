@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>框选解惑 · 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>框选解惑 · 设置</h1>
+
+    <form id="settings-form">
+      <fieldset>
+        <legend>AI 服务配置 <span class="required-tag">必填</span></legend>
+
+        <div class="field">
+          <label>服务商</label>
+          <div class="preset-chips">
+            <button type="button" class="preset-chip active" data-preset="deepseek">DeepSeek</button>
+            <button type="button" class="preset-chip" data-preset="openai">OpenAI</button>
+            <button type="button" class="preset-chip" data-preset="custom">自定义</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="api-key">API Key <span class="required-tag">必填</span></label>
+          <input type="password" id="api-key" placeholder="粘贴 API Key" autocomplete="off">
+          <div class="note-box">
+            <strong>怎么获取？</strong><br>
+            1️⃣ 打开所选服务商的官网注册登录<br>
+            2️⃣ 进入 API Keys / 密钥管理页面创建<br>
+            3️⃣ 复制密钥粘贴到上面<br>
+            💰 大部分服务商需要先充值才能调用
+          </div>
+        </div>
+
+        <div class="field" id="api-url-field" style="display:none;">
+          <label for="api-url">API 地址</label>
+          <input type="text" id="api-url" placeholder="https://api.deepseek.com/v1">
+          <span class="hint">OpenAI 兼容接口地址，如 https://api.openai.com/v1</span>
+        </div>
+
+        <div class="field" id="model-field" style="display:none;">
+          <label for="model-name">模型名称</label>
+          <input type="text" id="model-name" placeholder="deepseek-chat">
+          <span class="hint">如 deepseek-chat、gpt-4o、claude-3-opus 等</span>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>知识库连接 <span class="optional-tag">可选</span></legend>
+
+        <div class="field">
+          <label for="obsidian-url">REST API 地址</label>
+          <input type="text" id="obsidian-url" placeholder="http://127.0.0.1:27124">
+          <span class="hint">这是 Local REST API 插件的默认地址，一般不用改。除非你在插件设置里手动改过端口号，否则保持默认即可。</span>
+        </div>
+        <div class="field">
+          <label for="obsidian-key">API Key</label>
+          <input type="password" id="obsidian-key" placeholder="在知识库插件设置中生成的密钥" autocomplete="off">
+          <div class="note-box note-obsidian">
+            <strong>知识库是什么？</strong><br>
+            一款<b>免费的个人笔记软件</b>（如 Obsidian）。连接后，每次查词的解释可以一键保存为笔记，积累成个人知识库。<br><br>
+            <strong>怎么获取 API Key？</strong><br>
+            1️⃣ 打开你的知识库软件 → 左下角齿轮⚙️ →「第三方插件」<br>
+            2️⃣ 点「关闭安全模式」→「浏览」→ 搜索 <code>Local REST API</code><br>
+            3️⃣ 安装并启用插件 → 点插件右侧齿轮 →「Create new key」<br>
+            4️⃣ 复制生成的密钥，粘贴到上面<br>
+            ⚠️ 需要保持知识库软件打开才能保存
+          </div>
+        </div>
+        <div class="field">
+          <label for="obsidian-folder">新笔记保存到哪个位置 <span class="optional-tag">可选</span></label>
+          <input type="text" id="obsidian-folder" placeholder="例如：学习笔记/框选解惑 或 直接写文件夹名">
+          <span class="hint">支持多级路径，用 / 分隔。留空则保存在知识库根目录。</span>
+        </div>
+        <div class="field">
+          <label for="obsidian-vault">知识库名称 <span class="optional-tag">可选</span></label>
+          <input type="text" id="obsidian-vault" placeholder="你的知识库名称，例如：我的笔记">
+          <span class="hint">填笔记要放置的知识库名字。打开知识库软件 → 看窗口左上角标题栏或左下角状态栏，显示的那个库的名字。如 xx Obsidian。填这个是为了在插件不可用时，启动备用保存能定位到正确的知识库。如果只有一个知识库，不填通常也能用。</span>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" id="save-btn">保存设置</button>
+        <span id="status"></span>
+      </div>
+    </form>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

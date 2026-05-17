@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @import url('popup.css');
+  </style>
+</head>
+<body>
+  <!-- 未配置状态 -->
+  <div id="state-empty" class="state">
+    <div class="welcome-icon">📖</div>
+    <h1>框选解惑</h1>
+    <p class="subtitle">有疑惑，用框选解惑</p>
+
+    <div class="setup-card">
+      <!-- AI 配置 -->
+      <div class="step">
+        <span class="step-num">1</span>
+        <span>配置 AI 服务 <span class="required-tag">必填</span></span>
+      </div>
+
+      <!-- 服务商预设 -->
+      <div class="field">
+        <label class="mini-label">服务商</label>
+        <div class="preset-chips">
+          <button class="preset-chip active" data-preset="deepseek">DeepSeek</button>
+          <button class="preset-chip" data-preset="openai">OpenAI</button>
+          <button class="preset-chip" data-preset="custom">自定义</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="mini-label">API Key</label>
+        <input type="password" id="api-key" placeholder="粘贴 API Key" autocomplete="off">
+      </div>
+
+      <div class="field" id="api-url-field" style="display:none;">
+        <label class="mini-label">API 地址</label>
+        <input type="text" id="api-url" placeholder="https://api.deepseek.com/v1">
+      </div>
+
+      <div class="field" id="model-field" style="display:none;">
+        <label class="mini-label">模型名称</label>
+        <input type="text" id="model-name" placeholder="deepseek-chat">
+      </div>
+
+      <div class="note-box">
+        <strong>怎么获取 API Key？</strong><br>
+        1️⃣ 打开所选服务商的官网注册<br>
+        2️⃣ 进入 API Keys 页面创建密钥<br>
+        3️⃣ 复制密钥粘贴到上面<br>
+        💰 大部分服务商需要先充值
+      </div>
+
+      <!-- Obsidian 可选 -->
+      <div class="optional-section">
+        <div class="step optional-step">
+          <span class="step-num optional-num">+</span>
+          <span>连接 Obsidian（可选，随时可补填）</span>
+        </div>
+        <div class="field">
+          <input type="password" id="obsidian-key" placeholder="粘贴 Obsidian API Key" autocomplete="off">
+          <div class="note-box note-obsidian">
+            <strong>Obsidian 是什么？</strong><br>
+            一款<b>免费的个人笔记软件</b>。连接后，每次的解释可以一键保存为笔记，积累成你的知识库。<br><br>
+            <strong>怎么获取 API Key？</strong><br>
+            1️⃣ 打开 Obsidian → 左下角齿轮⚙️ →「第三方插件」<br>
+            2️⃣ 点「关闭安全模式」→ 点「浏览」→ 搜 <code>Local REST API</code><br>
+            3️⃣ 安装并启用 → 点插件右侧齿轮 →「Create new key」<br>
+            4️⃣ 复制生成的密钥，粘贴到上面<br>
+            ⚠️ 用的时候要保持 Obsidian 开着
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="save-btn" class="primary-btn">保存并启用</button>
+    <p id="empty-status" class="status-msg"></p>
+    <a href="options.html" target="_blank" class="advanced-link">高级设置 →</a>
+  </div>
+
+  <!-- 已配置状态 -->
+  <div id="state-ready" class="state" style="display:none;">
+    <div class="ready-header">
+      <span class="ready-icon">✅</span>
+      <div>
+        <strong>框选解惑已就绪</strong>
+        <p class="ready-hint">在任意网页框选文字即可使用</p>
+      </div>
+    </div>
+    <div class="quick-info">
+      <div class="info-row">
+        <span>AI 模型</span>
+        <span id="info-model" class="info-val">-</span>
+      </div>
+      <div class="info-row" id="obsidian-row">
+        <span>Obsidian</span>
+        <span id="info-obsidian" class="info-val obsidian-status">未连接</span>
+      </div>
+    </div>
+    <div id="obsidian-cta" class="obsidian-cta">
+      <span>📝 连接 Obsidian 笔记，一键保存</span>
+      <a href="options.html" target="_blank">去设置 →</a>
+    </div>
+    <a href="options.html" target="_blank" class="settings-link">管理所有设置 →</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

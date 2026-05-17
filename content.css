@@ -1,0 +1,7 @@
+/* Content script styles are in Shadow DOM (see content.js getPopupStyles()).
+   This file is minimal — just ensure no conflicts with host page. */
+
+/* Reset any potential style leakage */
+#we-floating-btn {
+  all: initial;
+}

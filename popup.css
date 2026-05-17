@@ -1,0 +1,291 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 360px;
+  min-height: 280px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+}
+
+.state {
+  padding: 20px;
+}
+
+/* --- Empty state --- */
+.welcome-icon {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-size: 18px;
+  text-align: center;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.setup-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+.step:first-child { margin-top: 0; }
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4285f4;
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field:last-of-type { margin-bottom: 0; }
+
+input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66,133,244,0.12);
+}
+
+.hint {
+  display: block;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 10px;
+  background: #4285f4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover { background: #3367d6; }
+.primary-btn:active { background: #2a56c6; }
+
+.status-msg {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 10px;
+  min-height: 18px;
+}
+
+.status-msg.success { color: #34a853; }
+.status-msg.error { color: #ea4335; }
+
+.advanced-link {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  text-decoration: none;
+  margin-top: 14px;
+}
+
+.advanced-link:hover { color: #4285f4; }
+
+/* --- Ready state --- */
+.ready-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.ready-icon { font-size: 28px; }
+
+.ready-header strong { font-size: 15px; color: #1a1a1a; }
+
+.ready-hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.quick-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.info-row + .info-row {
+  border-top: 1px solid #eee;
+}
+
+.info-val {
+  font-size: 12px;
+  color: #888;
+}
+
+.settings-link {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  color: #4285f4;
+  text-decoration: none;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.settings-link:hover { background: #f0f4ff; }
+
+/* --- Required / Optional tags --- */
+.required-tag {
+  font-size: 10px; font-weight: 500;
+  background: #ea4335; color: #fff;
+  padding: 1px 6px; border-radius: 3px;
+  margin-left: 4px;
+}
+
+.optional-section {
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 12px; margin-top: 12px;
+}
+
+.optional-step { color: #888; }
+
+.optional-num {
+  background: #999 !important;
+}
+
+/* --- Obsidian CTA (ready state) --- */
+.obsidian-status.connected { color: #34a853; }
+.obsidian-status.disconnected { color: #ea4335; }
+
+.obsidian-cta {
+  display: flex;
+  align-items: center; justify-content: space-between;
+  padding: 10px 12px;
+  background: #fdf6e3;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px; color: #856404;
+}
+
+.obsidian-cta a {
+  font-size: 12px; font-weight: 500;
+  color: #856404; text-decoration: underline;
+  white-space: nowrap; margin-left: 8px;
+}
+
+.obsidian-cta.hidden { display: none; }
+
+/* --- Note boxes (API key 获取备注) --- */
+.note-box {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 8px 8px 0;
+  padding: 8px 10px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+.note-box strong { color: #92400e; }
+
+.note-box code {
+  background: #fef3c7;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 10px;
+}
+
+.note-box a { color: #92400e; }
+
+.note-obsidian {
+  background: #f0f9ff;
+  border-left-color: #0ea5e9;
+  color: #0c4a6e;
+}
+
+.note-obsidian strong { color: #075985; }
+.note-obsidian code { background: #e0f2fe; }
+.note-obsidian a { color: #075985; }
+
+/* --- Preset chips --- */
+.mini-label {
+  font-size: 11px; font-weight: 500;
+  color: #888; margin-bottom: 4px;
+  display: block;
+}
+
+.preset-chips {
+  display: flex; gap: 6px;
+  margin-bottom: 6px;
+}
+
+.preset-chip {
+  flex: 1; padding: 7px 0;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  background: #fff;
+  color: #555; font-size: 12px; font-weight: 500;
+  font-family: inherit; cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-chip:hover { background: #f5f5f7; border-color: #aaa; }
+
+.preset-chip.active {
+  background: #4285f4; color: #fff;
+  border-color: #4285f4;
+}
