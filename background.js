@@ -54,8 +54,8 @@ async function callAI(text) {
         { role: 'system', content: EXPLAIN_PROMPT },
         { role: 'user', content: text }
       ],
-      temperature: 0.8,
-      max_tokens: 350,
+      temperature: 0.5,
+      max_tokens: 300,
       response_format: { type: 'json_object' }
     })
   });
@@ -173,8 +173,8 @@ async function callAIChat(originalText, explanation, history, question) {
     body: JSON.stringify({
       model: s.model,
       messages: messages,
-      temperature: 0.8,
-      max_tokens: 400
+      temperature: 0.5,
+      max_tokens: 350
     })
   });
 
@@ -215,8 +215,8 @@ async function callAIGeneral(history) {
     body: JSON.stringify({
       model: s.model,
       messages: messages,
-      temperature: 0.8,
-      max_tokens: 600
+      temperature: 0.5,
+      max_tokens: 500
     })
   });
 
@@ -257,8 +257,8 @@ async function summarizeNote(originalText, explanation, history) {
           content: '你是惑惑——框选解惑AI助手。用户框选了"' + originalText + '"，AI初始解释："""' + explanation + '"""。后续追问记录："""' + transcript + '"""。把全部内容总结为一篇结构化笔记。严格输出JSON：{"title":"≤40字总结标题","summary":"用Markdown排版的结构化总结（标题###，列表-，**加粗**重点）"}。标题要概括全部内容的要点。每条要点写具体，让用户看完笔记就能带走用。口语化用"你"。只支持文字。'
         }
       ],
-      temperature: 0.8,
-      max_tokens: 500,
+      temperature: 0.5,
+      max_tokens: 400,
       response_format: { type: 'json_object' }
     })
   });
