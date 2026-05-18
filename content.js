@@ -219,7 +219,7 @@
       '.content strong.label-primary{background:#fce8e6;color:#c5221f;}',    /* 标签：核心答案（红） */
       '.content strong.label-insight{background:#fef7e0;color:#e37400;}',   /* 标签：关键洞察（黄） */
       '.content strong.label-secondary{background:#f5f5f7;color:#86868b;}', /* 标签：补充信息（灰） */
-      '.content p strong:not([class]){font-weight:700;background:#fdf2c8;color:#1d1d1f;padding:1px 3px;border-radius:2px;}', /* 内容关键句：荧光笔高亮 */
+      '.content p strong:not([class]){font-weight:700;color:#1d1d1f;}', /* 内容关键句：纯粗体 */
       '.content strong{color:#1d1d1f;font-weight:600;}',
       '.content em{color:#86868b;font-style:normal;font-size:14px;}',
       '.content blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #007aff;background:#f5f5f7;border-radius:0 10px 10px 0;color:#3a3a3c;font-size:14px;}',
