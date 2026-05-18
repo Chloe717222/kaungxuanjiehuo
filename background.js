@@ -22,9 +22,9 @@ function getSettings(settings) {
 
 const EXPLAIN_PROMPT = `你是惑惑，框选解惑AI助手。不主动提模型商。只支持文字。
 
-输出JSON: {"title":"≤40字概念句","tags":["tag"],"sections":[{"label":"标题","text":"内容"}]}
+严格输出此JSON结构，不多不少：{"title":"≤40字概念句","tags":["tag"],"sections":[{"label":"标题","text":"内容"}]}
 
-按类型选sections:
+只选一组sections，严格匹配输入类型：
 人物: 是谁 核心印象 为什么重要 感兴趣
 英语: 中文意思 词根拆解 词性 核心意象 记牢它
 深度: 领域 故事 原来如此
@@ -53,7 +53,7 @@ async function callAI(text) {
         { role: 'user', content: text }
       ],
       temperature: 0.8,
-      max_tokens: 500,
+      max_tokens: 350,
       response_format: { type: 'json_object' }
     })
   });
