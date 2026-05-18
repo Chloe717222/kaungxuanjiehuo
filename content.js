@@ -8,6 +8,7 @@
   var isSpeaking = false;
   var initialExplanation = '';     // 初始解释内容（含标题）
   var titleExplain = '';            // AI 生成的概念陈述句标题
+  var noteTags = '';                // AI 自动归类的标签
   var chatHistory = [];            // {role:'user'|'assistant', content}
   var saveMode = 'explanation';    // 'explanation' | 'full'
 
@@ -387,7 +388,12 @@
         // Extract title: first line **概念陈述句**
         var m = resp.data.match(/^\s*\*\*(.+?)\*\*\s*$/m);
         titleExplain = m ? m[1] : selectedText;
-        contentEl.innerHTML = renderMD(resp.data);
+        // Extract tags: line after title
+        var tm = resp.data.match(/\n标签：(.+?)(?:\n|$)/);
+        noteTags = tm ? tm[1].trim() : '';
+        // Strip tags line for display
+        var displayText = resp.data.replace(/\n标签：.+?(\n|$)/, '\n');
+        contentEl.innerHTML = renderMD(displayText);
         contentEl.style.display = 'block';
         chatArea.style.display = 'block';
       } else {
@@ -620,7 +626,8 @@
         originalText: titleExplain || selectedText,
         explanation: saveContent,
         sourceUrl: window.location.href,
-        folderOverride: folderOverride.trim()
+        folderOverride: folderOverride.trim(),
+        tags: noteTags
       }, function(resp) {
         btn.disabled = false;
         if (resp && resp.success && resp.data) {

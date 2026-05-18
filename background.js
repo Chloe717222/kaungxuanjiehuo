@@ -95,6 +95,14 @@ const SYSTEM_PROMPT = `你是「框选解惑」的 AI 助手，名叫"惑惑"。
 ## 标题要求
 在回复第一行输出一句 **概念陈述句** 作为笔记标题，格式：**核心概念：一句话陈述**（如 **去杠杆化：减少负债以降低经济风险的过程**）。这是用户知识库里笔记的标题，要让人扫一眼知道这条笔记讲什么。不超过 40 字。
 
+## 标签要求
+标题下一行输出 `标签：tag1, tag2`（1-3 个标签即可）。标签要准确反映内容类型和领域，方便用户归档检索。例如：
+- 人物 → 标签：人物, 科技, 企业家
+- 英文单词 → 标签：英语, 动词
+- 技术概念 → 标签：计算机, 协议, 前端
+- 日常词汇 → 标签：网络用语
+- 学术概念 → 标签：哲学, 伦理学
+
 ## 通用要求
 - 全程用"你"，口语化，像朋友聊天
 - 每一条都有信息量，不写废话
@@ -148,7 +156,7 @@ async function callAI(text) {
 }
 
 // --- Obsidian 保存：REST API → URI 回退（URI 由 content script 打开）---
-async function saveToObsidian(originalText, explanation, sourceUrl, folderOverride) {
+async function saveToObsidian(originalText, explanation, sourceUrl, folderOverride, tags) {
   const settings = await chrome.storage.sync.get(DEFAULTS);
 
   const now = new Date();
@@ -161,7 +169,7 @@ async function saveToObsidian(originalText, explanation, sourceUrl, folderOverri
 
   const content = [
     '---',
-    'tags: [框选解惑]',
+    'tags: [' + (tags || '框选解惑') + ']',
     'source: ' + sourceUrl,
     'date: ' + dateStr,
     '---',
