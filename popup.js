@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     apiUrlField:   document.getElementById('api-url-field'),
     modelName:     document.getElementById('model-name'),
     modelField:    document.getElementById('model-field'),
+    obsidianKey:   document.getElementById('obsidian-key'),
     saveBtn:       document.getElementById('save-btn'),
     emptyStatus:   document.getElementById('empty-status'),
     infoModel:     document.getElementById('info-model'),
@@ -55,15 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   els.saveBtn.addEventListener('click', saveSettings);
-
-  // Obsidian config → open options page (popup closes when switching windows)
-  var gotoBtn = document.getElementById('goto-options-btn');
-  if (gotoBtn) {
-    gotoBtn.addEventListener('click', function() {
-      chrome.runtime.openOptionsPage();
-      window.close();
-    });
-  }
 });
 
 // ---- Presets ----
@@ -134,14 +126,19 @@ function saveSettings() {
     return;
   }
 
+  var obsidianKey = els.obsidianKey.value.trim();
+
   var toSave = {
     apiKey: apiKey,
     apiBaseUrl: apiBaseUrl,
     model: model,
     obsidianUrl: state.obsidianUrl || DEFAULTS.obsidianUrl,
-    obsidianKey: state.obsidianKey || '',
     obsidianFolder: state.obsidianFolder || DEFAULTS.obsidianFolder
   };
+
+  if (obsidianKey) {
+    toSave.obsidianKey = obsidianKey;
+  }
 
   chrome.storage.sync.set(toSave, function() {
     state.apiKey = apiKey;
