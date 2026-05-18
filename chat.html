@@ -22,8 +22,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Ping
 .msg.user{align-self:flex-end;background:#007aff;color:#fff;border-bottom-right-radius:4px}
 .msg.assistant{align-self:flex-start;background:#fff;color:#1d1d1f;border-bottom-left-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .msg.assistant p{margin:0}
-.msg.assistant h3{font-size:15px;margin:12px 0 4px}
 .msg.assistant strong{color:#1d1d1f;font-weight:700}
+.msg.assistant h3{font-size:15px;font-weight:700;margin:12px 0 4px}
+.msg.assistant ul,.msg.assistant ol{margin:4px 0;padding-left:18px}
+.msg.assistant li{margin:2px 0}
+.msg.assistant blockquote{margin:6px 0;padding:4px 10px;border-left:3px solid #007aff;color:#666;font-size:13px}
 .msg p{margin:3px 0}
 .msg p:first-child{margin-top:0}
 .msg p:last-child{margin-bottom:0}
@@ -34,14 +37,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Ping
 .input-row textarea{flex:1;padding:12px 16px;border:1px solid #d1d1d6;border-radius:14px;font-size:15px;font-family:inherit;outline:none;background:#f5f5f7;color:#1d1d1f;resize:none;min-height:44px;max-height:120px;line-height:1.5;transition:all 0.15s}
 .input-row textarea:focus{border-color:#007aff;background:#fff;box-shadow:0 0 0 3px rgba(0,122,255,0.1)}
 .send-btn{padding:12px 24px;border:none;border-radius:14px;background:#007aff;color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:all 0.15s;flex-shrink:0}
+.speak-input-btn{width:32px;height:32px;border:none;border-radius:50%;background:transparent;color:#86868b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
+.speak-input-btn:hover{background:#f0f0f0;color:#1d1d1f}
+.speak-input-btn.speaking{background:#007aff;color:#fff}
 .send-btn:hover{background:#0066d6}
 .send-btn:active{background:#0055b3;transform:scale(0.97)}
 .send-btn:disabled{opacity:0.4;cursor:default}
-.footer-bar{display:flex;align-items:center;gap:8px;padding:10px 24px;background:#fbfbfd;border-top:1px solid #f0f0f0;flex-shrink:0}
-.footer-bar label{font-size:12px;color:#86868b;flex-shrink:0}
-.folder-input{flex:1;padding:6px 10px;border:1px solid #d0d0d0;border-radius:8px;font-size:12px;font-family:inherit;color:#1d1d1f;outline:none;max-width:200px;transition:border-color 0.15s}
-.folder-input:focus{border-color:#007aff}
-.save-way{padding:8px 14px;border:none;border-radius:10px;background:#f5f5f7;color:#1d1d1f;font-size:13px;font-family:inherit;cursor:pointer;transition:all 0.15s}
+.footer-bar{display:flex;align-items:center;gap:10px;padding:10px 24px;background:#fbfbfd;border-top:1px solid #f0f0f0;flex-shrink:0}
+.folder-input-text{flex:1;padding:6px 10px;border:1px solid #d0d0d0;border-radius:8px;font-size:12px;font-family:inherit;color:#1d1d1f;outline:none;max-width:200px;transition:border-color 0.15s}
+.folder-input-text:focus{border-color:#007aff}
+.save-way{padding:8px 14px;border:none;border-radius:8px;background:#f5f5f7;color:#1d1d1f;font-size:13px;font-family:inherit;cursor:pointer;transition:all 0.15s}
 .save-way:hover{background:#e8e8ed}
 .save-way.saved{background:#e3f9e5;color:#1d7a2b}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;z-index:9999;pointer-events:none;animation:toastIn 0.3s ease}
@@ -65,8 +70,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Ping
   </div>
 </div>
 <div class="footer-bar">
-  <label>📁</label>
-  <input type="text" class="folder-input" id="folderInput" placeholder="保存到哪个文件夹？">
+  <input type="text" class="folder-input-text" id="folderInput" placeholder="保存到哪个文件夹？">
   <button class="save-way" data-way="obsidian" id="saveObsidian" title="需要知识库运行中且已配置 API Key">📡 同步到知识库</button>
   <button class="save-way" data-way="download" id="saveDownload" title="下载为 Markdown 文件到本地">📥 下载文件</button>
   <button class="save-way" data-way="clipboard" id="saveClipboard" title="复制 Markdown 内容，可粘贴到任何笔记软件">📋 复制内容</button>
@@ -74,7 +78,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Ping
 <div class="input-area">
   <div class="input-row">
     <textarea id="input" placeholder="输入你的问题... (Enter 发送)" rows="1"></textarea>
-    <button class="send-btn" id="sendBtn">发送</button>
+    <button class="speak-input-btn" id="speakInputBtn" title="朗读输入内容">🔊</button>
+    <button class="send-btn" id="sendBtn">发</button>
   </div>
 </div>
 <script src="chat.js"></script>

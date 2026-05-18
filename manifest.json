@@ -14,11 +14,13 @@
     "https://api.deepseek.com/*",
     "https://api.openai.com/*",
     "http://127.0.0.1:*/*",
-    "https://127.0.0.1:*/*"
+    "https://127.0.0.1:*/*",
+    "http://localhost:*/*",
+    "https://localhost:*/*"
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["<all_urls>", "file:///*"],
       "js": ["content.js"]
     }
   ],
@@ -47,7 +49,7 @@
   "web_accessible_resources": [
     {
       "resources": ["icons/*"],
-      "matches": ["<all_urls>"]
+      "matches": ["<all_urls>", "file:///*"]
     }
   ]
 }

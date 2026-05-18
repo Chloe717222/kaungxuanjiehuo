@@ -1,9 +1,11 @@
 var chatHistory = [];
+var isSpeaking = false;
 
 var els = {
   messages: document.getElementById('messages'),
   input: document.getElementById('input'),
   sendBtn: document.getElementById('sendBtn'),
+  speakInputBtn: document.getElementById('speakInputBtn'),
   folderInput: document.getElementById('folderInput'),
   saveObsidian: document.getElementById('saveObsidian'),
   saveDownload: document.getElementById('saveDownload'),
@@ -55,6 +57,17 @@ function send() {
 }
 
 els.sendBtn.addEventListener('click', send);
+els.speakInputBtn.addEventListener('click', function() {
+  var text = els.input.value.trim();
+  if (!text) return;
+  var btn = els.speakInputBtn;
+  if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; btn.classList.remove('speaking'); return; }
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = detectLang(text); u.rate = 0.9;
+  u.onstart = function(){ isSpeaking = true; btn.classList.add('speaking'); };
+  u.onend = u.onerror = function(){ isSpeaking = false; btn.classList.remove('speaking'); };
+  window.speechSynthesis.speak(u);
+});
 els.input.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });
@@ -153,10 +166,49 @@ els.saveClipboard.addEventListener('click', function() { doSaveChat('clipboard',
 function renderChatMD(md) {
   var d = document.createElement('div');
   d.textContent = md;
-  return '<p>' + d.innerHTML
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br>') + '</p>';
+  var lines = d.innerHTML.split('\n');
+  var out = [];
+  var inUl = false, inOl = false;
+
+  function closeLists() {
+    if (inOl) { out.push('</ol>'); inOl = false; }
+    if (inUl) { out.push('</ul>'); inUl = false; }
+  }
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+
+    line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    var h = line.match(/^### (.+)/);
+    if (h) { closeLists(); out.push('<h3>' + h[1] + '</h3>'); continue; }
+
+    var bq = line.match(/^&gt; (.+)/);
+    if (bq) { closeLists(); out.push('<blockquote>' + bq[1] + '</blockquote>'); continue; }
+
+    var ul = line.match(/^[\-\*] (.+)/);
+    if (ul) {
+      if (!inUl) { closeLists(); out.push('<ul>'); inUl = true; }
+      out.push('<li>' + ul[1] + '</li>');
+      continue;
+    }
+
+    var ol = line.match(/^\d+\. (.+)/);
+    if (ol) {
+      if (!inOl) { closeLists(); out.push('<ol>'); inOl = true; }
+      out.push('<li>' + ol[1] + '</li>');
+      continue;
+    }
+
+    closeLists();
+    if (line === '') {
+      out.push('<br>');
+    } else {
+      out.push('<p>' + line + '</p>');
+    }
+  }
+  closeLists();
+  return out.join('');
 }
 
 function showToast(msg) {
@@ -168,6 +220,14 @@ function showToast(msg) {
     t.style.opacity = '0'; t.style.transition = 'opacity 0.3s';
     setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
   }, 2800);
+}
+
+function detectLang(text) {
+  if (/[一-鿿]/.test(text)) return 'zh-CN';
+  if (/[가-힯]/.test(text)) return 'ko-KR';
+  if (/[฀-๿]/.test(text)) return 'th-TH';
+  if (/[぀-ヿ]/.test(text)) return 'ja-JP';
+  return 'en-US';
 }
 
 // Focus

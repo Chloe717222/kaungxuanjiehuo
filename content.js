@@ -106,6 +106,15 @@
     r.querySelector('.chat-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
     });
+    r.querySelector('.chat-speak-btn').addEventListener('click', function() {
+      var text = r.querySelector('.chat-input').value.trim();
+      speakText(text, r.querySelector('.chat-speak-btn'));
+    });
+    // Show word-box (text + speak) only for English text
+    if (/^[a-zA-Z]/.test(selectedText) && selectedText.replace(/[^a-zA-Z]/g, '').length / selectedText.length > 0.5) {
+      r.querySelector('.word-box').style.display = 'flex';
+      r.querySelector('.word-text').textContent = selectedText;
+    }
     // Footer always visible (download & clipboard don't need Obsidian)
     r.querySelector('.footer').style.display = 'flex';
     if (!hasObsidian) {
@@ -143,10 +152,10 @@
         '<button class="close">&times;</button>' +
       '</div>' +
       '<div class="body">' +
-        // Word box
-        '<div class="word-box">' +
-          '<span class="word-text">' + escapeHTML(selectedText) + '</span>' +
-          '<button class="speak-btn" title="朗读框选的文字">🔊 朗读</button>' +
+        // Word box — selected text + speak icon (English only)
+        '<div class="word-box" style="display:none;">' +
+          '<span class="word-text"></span>' +
+          '<button class="speak-btn" title="朗读框选的文字">🔊</button>' +
         '</div>' +
         // Loading
         '<div class="loading">' +
@@ -155,29 +164,27 @@
         '</div>' +
         // Initial explanation
         '<div class="content" style="display:none;"></div>' +
-        // Chat area (hidden until explanation loads)
+        // Chat messages (hidden until explanation loads)
         '<div class="chat-area" style="display:none;">' +
-          '<div class="chat-divider"><span>追问</span></div>' +
           '<div class="chat-messages"></div>' +
-          '<div class="chat-input-row">' +
-            '<input type="text" class="chat-input" placeholder="还有疑问？继续问...">' +
-            '<button class="chat-send">发送</button>' +
-          '</div>' +
         '</div>' +
         // Error
         '<div class="error-msg" style="display:none;"></div>' +
       '</div>' +
+      // Chat input — outside body so gap to footer is fixed
+      '<div class="chat-input-row" style="display:none;">' +
+        '<input type="text" class="chat-input" placeholder="还有疑问？继续问...">' +
+        '<button class="chat-speak-btn" title="朗读输入内容">🔊</button>' +
+        '<button class="chat-send">发</button>' +
+      '</div>' +
       // Footer
       '<div class="footer" style="display:none;">' +
-        '<div class="save-mode-row">' +
-          '<span class="save-mode-label">保存至知识库：</span>' +
-          '<button class="save-mode-btn active" data-mode="explanation" title="仅保存核心解释，不含追问">仅核心解释</button>' +
-          '<button class="save-mode-btn" data-mode="full" title="整合解释和追问为一篇结构化笔记">含追问笔记</button>' +
-        '</div>' +
-        '<div class="save-folder-row">' +
-          '<span class="save-folder-label">📁</span>' +
+        '<div class="save-config-row">' +
           '<input type="text" class="save-folder-input" placeholder="填你要保存笔记到知识库里哪个文件夹">' +
+          '<button class="save-mode-btn active" data-mode="explanation">保存仅首框解释</button>' +
+          '<button class="save-mode-btn" data-mode="full">保存含追问笔记</button>' +
         '</div>' +
+        '<div class="footer-divider"></div>' +
         '<div class="save-actions">' +
           '<button class="save-way" data-way="obsidian" title="需要 Obsidian 运行中且已配置 API Key">📡 同步到知识库</button>' +
           '<button class="save-way" data-way="download" title="下载为 Markdown 文件到本地">📥 下载文件</button>' +
@@ -192,21 +199,21 @@
       // Card
       '.card{background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.12),0 0 0 0.5px rgba(0,0,0,0.06);overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","PingFang SC",sans-serif;font-size:15px;color:#1d1d1f;line-height:1.5;width:100%;height:100%;display:flex;flex-direction:column;}',
       // Header
-      '.header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#007aff;border-bottom:none;cursor:move;user-select:none;flex-shrink:0;}',
+      '.header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fff;border-bottom:1px solid #e8e8ed;cursor:move;user-select:none;flex-shrink:0;}',
       '.header-left{display:flex;align-items:baseline;gap:8px;}',
-      '.header-title{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.01em;}',
-      '.header-slogan{font-size:11px;color:rgba(255,255,255,0.7);font-weight:400;white-space:nowrap;}',
-      '.close{width:28px;height:28px;border:none;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}',
-      '.close:hover{background:rgba(255,255,255,0.35);color:#fff;}',
+      '.header-title{font-size:15px;font-weight:600;color:#1d1d1f;letter-spacing:-0.01em;}',
+      '.header-slogan{font-size:11px;color:#86868b;font-weight:400;white-space:nowrap;}',
+      '.close{width:28px;height:28px;border:none;border-radius:50%;background:transparent;color:#86868b;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}',
+      '.close:hover{background:#f0f0f0;color:#1d1d1f;}',
       // Body
       '.body{padding:20px;overflow-y:auto;flex:1;}',
       '.body::-webkit-scrollbar{width:4px;}',
       '.body::-webkit-scrollbar-thumb{background:#d2d2d7;border-radius:2px;}',
       // Word box
-      '.word-box{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;margin-bottom:20px;background:#f5f5f7;border-radius:14px;}',
-      '.word-text{font-size:22px;font-weight:600;color:#1d1d1f;letter-spacing:-0.02em;word-break:break-word;line-height:1.3;flex:1;}',
-      '.speak-btn{width:36px;height:36px;border:none;border-radius:50%;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:all 0.15s;}',
-      '.speak-btn:hover{background:#f0f0f0;transform:scale(1.05);}',
+      '.word-box{display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:14px;background:#f5f5f7;border-radius:12px;}',
+      '.word-text{font-size:20px;font-weight:600;color:#1d1d1f;letter-spacing:-0.02em;word-break:break-word;line-height:1.3;flex:1;}',
+      '.speak-btn{width:36px;height:36px;border:none;border-radius:50%;background:transparent;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}',
+      '.speak-btn:hover{background:#e8e8ed;transform:scale(1.08);}',
       '.speak-btn.speaking{background:#007aff;color:#fff;animation:pulse 1s ease-in-out infinite;}',
       '@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,122,255,0.3);}50%{box-shadow:0 0 0 8px rgba(0,122,255,0);}}',
       // Loading
@@ -215,51 +222,49 @@
       '@keyframes spin{to{transform:rotate(360deg);}}',
       '@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}',
       // Content typography
-      '.note-title{font-size:17px;font-weight:700;margin:0 0 16px;color:#1d1d1f;line-height:1.5;}',
-      '.content h3{font-size:16px;font-weight:700;margin:22px 0 6px;color:#1d1d1f;padding-bottom:6px;border-bottom:1px solid #e8e8ed;}',
-      '.content h3:first-child{margin-top:0;}',
-      '.content p{margin:6px 0 12px;color:#3a3a3c;font-size:15px;line-height:1.7;}',
+      '.note-title{font-size:17px;font-weight:700;margin:0 0 20px;color:#1d1d1f;line-height:1.5;}',
+      '.content p{margin:6px 0 14px;color:#3a3a3c;font-size:15px;line-height:1.7;}',
       '.content strong{font-weight:700;color:#1d1d1f;}',
       '.content em{color:#86868b;font-style:normal;font-size:14px;}',
-      '.content blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #007aff;background:#f5f5f7;border-radius:0 10px 10px 0;color:#3a3a3c;font-size:14px;}',
       // Chat area
       '.chat-area{margin-top:16px;}',
-      '.chat-divider{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#86868b;font-size:12px;user-select:none;}',
-      '.chat-divider::before,.chat-divider::after{content:"";flex:1;height:1px;background:#f0f0f0;}',
-      '.chat-messages{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:240px;overflow-y:auto;}',
-      '.chat-messages::-webkit-scrollbar{width:3px;}',
-      '.chat-messages::-webkit-scrollbar-thumb{background:#d2d2d7;border-radius:2px;}',
-      '.chat-msg{padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.55;max-width:92%;word-break:break-word;}',
+      '.chat-messages{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}',
+      '.chat-msg{padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.55;max-width:92%;word-break:break-word;}',
       '.chat-msg.user{align-self:flex-end;background:#007aff;color:#fff;border-bottom-right-radius:4px;}',
       '.chat-msg.assistant{align-self:flex-start;background:#f5f5f7;color:#1d1d1f;border-bottom-left-radius:4px;}',
       '.chat-msg p{margin:2px 0;}',
       '.chat-msg p:first-child{margin-top:0;}',
       '.chat-msg p:last-child{margin-bottom:0;}',
       '.chat-msg strong{font-weight:700;color:#1d1d1f;}',
-      '.chat-input-row{display:flex;gap:8px;}',
-      '.chat-input{flex:1;padding:8px 12px;border:1px solid #d1d1d6;border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1d1d1f;transition:border-color 0.15s;}',
+      '.chat-msg h3{font-size:14px;font-weight:700;margin:10px 0 4px;color:#1d1d1f;}',
+      '.chat-msg ul,.chat-msg ol{margin:4px 0;padding-left:18px;}',
+      '.chat-msg li{margin:2px 0;}',
+      '.chat-msg blockquote{margin:6px 0;padding:4px 10px;border-left:3px solid #007aff;color:#666;font-size:12px;}',
+      '.chat-input-row{display:flex;gap:10px;padding:12px 20px;flex-shrink:0;border-top:1px solid #e8e8ed;}',
+      '.chat-input{flex:1;padding:8px 12px;border:1px solid #d1d1d6;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1d1d1f;transition:border-color 0.15s;}',
       '.chat-input:focus{border-color:#007aff;box-shadow:0 0 0 2px rgba(0,122,255,0.1);}',
       '.chat-input::placeholder{color:#aeaeb2;}',
-      '.chat-send{padding:8px 20px;border:none;border-radius:10px;background:#007aff;color:#fff;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;min-width:58px;}',
+      '.chat-send{padding:8px 20px;border:none;border-radius:8px;background:#007aff;color:#fff;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;min-width:58px;}',
       '.chat-send:hover{background:#0066d6;}',
       '.chat-send:active{background:#0055b3;}',
       '.chat-send:disabled{opacity:0.4;cursor:default;}',
+      '.chat-speak-btn{width:32px;height:32px;border:none;border-radius:50%;background:transparent;color:#86868b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;}',
+      '.chat-speak-btn:hover{background:#f0f0f0;color:#1d1d1f;}',
+      '.chat-speak-btn.speaking{background:#007aff;color:#fff;}',
       // Error
       '.error-msg{padding:20px 0;text-align:center;color:#ff3b30;font-size:14px;}',
       // Footer
-      '.footer{padding:12px 20px;border-top:1px solid #f0f0f0;flex-shrink:0;display:flex;flex-direction:column;gap:8px;}',
-      '.save-mode-row{display:flex;align-items:center;gap:6px;}',
-      '.save-mode-label{font-size:12px;color:#86868b;flex-shrink:0;}',
-      '.save-mode-btn{padding:5px 12px;border:1px solid #d0d0d0;border-radius:14px;background:#fff;color:#555;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;}',
+      '.footer{padding:12px 20px;border-top:1px solid #f0f0f0;flex-shrink:0;display:flex;flex-direction:column;gap:12px;}',
+      '.save-config-row{display:flex;align-items:center;gap:10px;}',
+      '.save-mode-btn{padding:5px 12px;border:1px solid #d0d0d0;border-radius:8px;background:#fff;color:#555;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;white-space:nowrap;}',
       '.save-mode-btn.active{background:#007aff;color:#fff;border-color:#007aff;}',
       '.save-mode-btn:hover:not(.active){background:#f0f0f0;}',
-      '.save-folder-row{display:flex;align-items:center;gap:6px;}',
-      '.save-folder-label{font-size:14px;flex-shrink:0;}',
       '.save-folder-input{flex:1;padding:6px 10px;border:1px solid #d0d0d0;border-radius:8px;font-size:12px;font-family:inherit;color:#1d1d1f;background:#fff;outline:none;transition:border-color 0.15s;}',
       '.save-folder-input:focus{color:#007aff;}',
       '.save-folder-input::placeholder{color:#aeaeb2;}',
-      '.save-actions{display:flex;gap:8px;}',
-      '.save-way{flex:1;padding:8px 6px;border:none;border-radius:10px;background:#f5f5f7;color:#1d1d1f;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:3px;line-height:1.3;white-space:normal;}',
+      '.footer-divider{height:1px;background:#e8e8ed;margin:0;}',
+      '.save-actions{display:flex;gap:10px;}',
+      '.save-way{flex:1;padding:8px 6px;border:none;border-radius:8px;background:#f5f5f7;color:#1d1d1f;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:3px;line-height:1.3;white-space:normal;}',
       '.save-way:hover{background:#e8e8ed;}',
       '.save-way:active{background:#dcdce0;}',
       '.save-way:disabled{opacity:0.5;cursor:default;}',
@@ -375,6 +380,7 @@
     var contentEl = root.querySelector('.content');
     var errorEl = root.querySelector('.error-msg');
     var chatArea = root.querySelector('.chat-area');
+    var chatInputRow = root.querySelector('.chat-input-row');
 
     chrome.runtime.sendMessage({ action:'explain', text:selectedText }, function(resp) {
       if (!popupShadow) return;
@@ -395,6 +401,7 @@
         }
         contentEl.style.display = 'block';
         chatArea.style.display = 'block';
+        chatInputRow.style.display = 'flex';
       } else {
         errorEl.textContent = '获取解释失败: ' + (resp ? resp.error : '未知');
         errorEl.style.display = 'block';
@@ -453,15 +460,13 @@
           '</div>' +
         '</div>' +
         '<div class="chat-input-row">' +
-          '<textarea class="chat-input-textarea" placeholder="输入你的问题... (Enter 发送)" rows="1"></textarea>' +
-          '<button class="chat-send">发送</button>' +
+          '<textarea class="chat-input-textarea" placeholder="输入你的问题... (Enter 发)" rows="1"></textarea>' +
+          '<button class="chat-speak-btn" title="朗读输入内容">🔊</button>' +
+          '<button class="chat-send">发</button>' +
         '</div>' +
       '</div>' +
       '<div class="footer" style="display:flex;">' +
-        '<div class="save-folder-row">' +
-          '<span class="save-folder-label">📁</span>' +
-          '<input type="text" class="save-folder-input" placeholder="填你要保存笔记到知识库里哪个文件夹">' +
-        '</div>' +
+        '<input type="text" class="save-folder-input" placeholder="填你要保存笔记到知识库里哪个文件夹">' +
         '<div class="save-actions">' +
           '<button class="save-way" data-way="obsidian" title="需要知识库运行中且已配置 API Key">📡 同步到知识库</button>' +
           '<button class="save-way" data-way="download" title="下载为 Markdown 文件到本地">📥 下载文件</button>' +
@@ -482,6 +487,10 @@
     textarea.addEventListener('input', function() {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    popupShadow.querySelector('.chat-speak-btn').addEventListener('click', function() {
+      var text = popupShadow.querySelector('.chat-input-textarea').value.trim();
+      speakText(text, popupShadow.querySelector('.chat-speak-btn'));
     });
 
     // Save buttons in chat dialog
@@ -602,84 +611,122 @@
     if (!popupShadow) return;
 
     var explanationText = explainData ? buildMarkdown(explainData) : (initialExplanation || '');
-
-    var fullText = '';
-    if (saveMode === 'full') {
-      fullText = explanationText;
-      if (chatHistory.length > 0) {
-        fullText += '\n\n---\n\n## 追问\n\n';
-        for (var i = 0; i < chatHistory.length; i++) {
-          var m = chatHistory[i];
-          fullText += m.role === 'user'
-            ? '**Q: ' + m.content + '**\n\n'
-            : m.content + '\n\n';
-        }
-      }
-    }
-    var saveContent = saveMode === 'full' ? fullText : explanationText;
-
     var btn = popupShadow.querySelector('.save-way[data-way="' + way + '"]');
     var origText = btn.textContent;
     btn.textContent = '...'; btn.disabled = true;
 
-    if (way === 'obsidian') {
-      var folderOverride = (popupShadow.querySelector('.save-folder-input') || {}).value || '';
-      chrome.runtime.sendMessage({
-        action: 'saveToObsidian',
-        originalText: titleExplain || selectedText,
-        explanation: saveContent,
-        sourceUrl: window.location.href,
-        folderOverride: folderOverride.trim(),
-        tags: noteTags
-      }, function(resp) {
+    function executeSave(noteTitle, saveContent) {
+      if (way === 'obsidian') {
+        var folderOverride = (popupShadow.querySelector('.save-folder-input') || {}).value || '';
+        chrome.runtime.sendMessage({
+          action: 'saveToObsidian',
+          originalText: noteTitle || selectedText,
+          explanation: saveContent,
+          sourceUrl: window.location.href,
+          folderOverride: folderOverride.trim(),
+          tags: noteTags
+        }, function(resp) {
+          btn.disabled = false;
+          if (resp && resp.success && resp.data) {
+            if (resp.data.method === 'rest') {
+              btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+              showToast('已保存到知识库');
+            } else if (resp.data.method === 'uri') {
+              openObsidianUri(resp.data.uri);
+              btn.textContent = '...'; showToast('正在连接 Obsidian...');
+              // Retry REST API after Obsidian wakes up
+              setTimeout(function() {
+                chrome.runtime.sendMessage({
+                  action: 'saveToObsidian',
+                  originalText: noteTitle || selectedText,
+                  explanation: saveContent,
+                  sourceUrl: window.location.href,
+                  folderOverride: folderOverride.trim(),
+                  tags: noteTags
+                }, function(retryResp) {
+                  btn.disabled = false;
+                  if (retryResp && retryResp.success && retryResp.data && retryResp.data.method === 'rest') {
+                    btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+                    showToast('已保存到知识库');
+                  } else {
+                    btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+                    showToast('已在知识库中打开');
+                  }
+                });
+              }, 2000);
+              return;
+            }
+          } else {
+            btn.textContent = origText;
+            showToast('保存失败：' + (resp ? resp.error : '无响应'));
+          }
+        });
+        return;
+      }
+
+      if (way === 'download') {
+        try {
+          var safeName = noteTitle.replace(/[\\/:*?"<>|#\n\r]/g, '').trim().slice(0, 40) || '未命名';
+          var blob = new Blob([saveContent], { type: 'text/markdown;charset=utf-8' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = safeName + '.md';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          btn.textContent = '✓ 已下载'; btn.classList.add('saved');
+          showToast('已下载 Markdown 文件');
+        } catch (e) {
+          btn.textContent = origText;
+          showToast('下载失败');
+        }
         btn.disabled = false;
-        if (resp && resp.success && resp.data) {
-          if (resp.data.method === 'rest') {
-            btn.textContent = '✓ 已同步'; btn.classList.add('saved');
-            showToast('已保存到知识库');
-          } else if (resp.data.method === 'uri') {
-            openObsidianUri(resp.data.uri);
-            btn.textContent = '✓ 已同步'; btn.classList.add('saved');
-            showToast('已在知识库中打开');
+        return;
+      }
+
+      if (way === 'clipboard') {
+        navigator.clipboard.writeText(saveContent).then(function() {
+          btn.textContent = '✓ 已复制'; btn.classList.add('saved');
+          showToast('已复制到剪贴板');
+        }).catch(function() {
+          btn.textContent = origText;
+          showToast('复制失败');
+        });
+        btn.disabled = false;
+        return;
+      }
+    }
+
+    // Full mode with chat history: summarize via AI first
+    if (saveMode === 'full' && chatHistory.length > 0) {
+      chrome.runtime.sendMessage({
+        action: 'summarizeNote',
+        originalText: titleExplain || selectedText,
+        explanation: explanationText,
+        history: chatHistory
+      }, function(resp) {
+        if (resp && resp.success) {
+          try {
+            var jsonStr = resp.data.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '');
+            var summary = JSON.parse(jsonStr);
+            executeSave(summary.title || (titleExplain || selectedText), summary.summary || resp.data);
+          } catch (e) {
+            executeSave(titleExplain || selectedText, resp.data);
           }
         } else {
-          btn.textContent = origText;
-          showToast('保存失败：' + (resp ? resp.error : '无响应'));
+          // Fallback: raw transcript
+          var fallback = explanationText + '\n\n---\n\n## 追问\n\n';
+          for (var i = 0; i < chatHistory.length; i++) {
+            var m = chatHistory[i];
+            fallback += m.role === 'user' ? '**Q: ' + m.content + '**\n\n' : m.content + '\n\n';
+          }
+          executeSave(titleExplain || selectedText, fallback);
         }
       });
       return;
     }
 
-    if (way === 'download') {
-      try {
-        var safeName = selectedText.replace(/[\\/:*?"<>|#\n\r]/g, '').trim().slice(0, 40) || '未命名';
-        var blob = new Blob([saveContent], { type: 'text/markdown;charset=utf-8' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url; a.download = safeName + '.md';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        btn.textContent = '✓ 已下载'; btn.classList.add('saved');
-        showToast('已下载 Markdown 文件');
-      } catch (e) {
-        btn.textContent = origText;
-        showToast('下载失败');
-      }
-      btn.disabled = false;
-      return;
-    }
-
-    if (way === 'clipboard') {
-      navigator.clipboard.writeText(saveContent).then(function() {
-        btn.textContent = '✓ 已复制'; btn.classList.add('saved');
-        showToast('已复制到剪贴板');
-      }).catch(function() {
-        btn.textContent = origText;
-        showToast('复制失败');
-      });
-      btn.disabled = false;
-      return;
-    }
+    // Explanation only (or full with no chat history yet)
+    executeSave(titleExplain || selectedText, explanationText);
   }
 
   function openObsidianUri(uri) {
@@ -730,8 +777,26 @@
             showToast('已保存到知识库');
           } else if (resp.data.method === 'uri') {
             openObsidianUri(resp.data.uri);
-            btn.textContent = '✓ 已同步'; btn.classList.add('saved');
-            showToast('已在知识库中打开');
+            btn.textContent = '...'; showToast('正在连接 Obsidian...');
+            setTimeout(function() {
+              chrome.runtime.sendMessage({
+                action: 'saveToObsidian',
+                originalText: safeName,
+                explanation: saveContent,
+                sourceUrl: window.location.href,
+                folderOverride: folderOverride.trim()
+              }, function(retryResp) {
+                btn.disabled = false;
+                if (retryResp && retryResp.success && retryResp.data && retryResp.data.method === 'rest') {
+                  btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+                  showToast('已保存到知识库');
+                } else {
+                  btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+                  showToast('已在知识库中打开');
+                }
+              });
+            }, 2000);
+            return;
           }
         } else {
           btn.textContent = origText;
@@ -777,12 +842,16 @@
   // ============================================================
   function speak() {
     if (!popupShadow) return;
-    var btn = popupShadow.querySelector('.speak-btn');
-    if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking=false; btn.classList.remove('speaking'); return; }
-    var u = new SpeechSynthesisUtterance(selectedText);
-    u.lang = detectLang(selectedText); u.rate = 0.9;
-    u.onstart = function(){ isSpeaking=true; btn.classList.add('speaking'); };
-    u.onend = u.onerror = function(){ isSpeaking=false; btn.classList.remove('speaking'); };
+    speakText(selectedText, popupShadow.querySelector('.speak-btn'));
+  }
+
+  function speakText(text, btn) {
+    if (!text || !btn) return;
+    if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; btn.classList.remove('speaking'); return; }
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = detectLang(text); u.rate = 0.9;
+    u.onstart = function(){ isSpeaking = true; btn.classList.add('speaking'); };
+    u.onend = u.onerror = function(){ isSpeaking = false; btn.classList.remove('speaking'); };
     window.speechSynthesis.speak(u);
   }
 
@@ -816,7 +885,7 @@
   // ============================================================
   var LABEL_ICON = {
     '是谁': '👤', '核心印象': '💡', '为什么重要': '🎯', '感兴趣': '🔗',
-    '中文意思': '📝', '词根拆解': '🧩', '词性': '💡', '核心意象': '🎯', '记牢它': '📌',
+    '前缀': '🔤', '后缀': '🔡', '词义分析': '📝', '常见搭配': '🔗', '辅助记忆': '🧠', '单词变形': '🔄', '行业概念': '🏭',
     '领域': '📚', '故事': '📖', '原来如此': '🔍',
     '一句话': '💬', '常出现在': '📍', '补充': '💡'
   };
@@ -843,7 +912,7 @@
   }
 
   function buildMarkdown(data) {
-    var lines = ['**' + (data.title || '') + '**'];
+    var lines = [];
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var s = sections[i];
@@ -853,10 +922,53 @@
   }
 
   function renderChatMD(md) {
-    return '<p>' + escapeHTML(md)
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>') + '</p>';
+    var lines = escapeHTML(md).split('\n');
+    var out = [];
+    var inUl = false, inOl = false;
+
+    function closeLists() {
+      if (inOl) { out.push('</ol>'); inOl = false; }
+      if (inUl) { out.push('</ul>'); inUl = false; }
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+
+      line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+      // ### Heading
+      var h = line.match(/^### (.+)/);
+      if (h) { closeLists(); out.push('<h3>' + h[1] + '</h3>'); continue; }
+
+      // > Blockquote
+      var bq = line.match(/^&gt; (.+)/);
+      if (bq) { closeLists(); out.push('<blockquote>' + bq[1] + '</blockquote>'); continue; }
+
+      // - Unordered list
+      var ul = line.match(/^[\-\*] (.+)/);
+      if (ul) {
+        if (!inUl) { closeLists(); out.push('<ul>'); inUl = true; }
+        out.push('<li>' + ul[1] + '</li>');
+        continue;
+      }
+
+      // 1. Ordered list
+      var ol = line.match(/^\d+\. (.+)/);
+      if (ol) {
+        if (!inOl) { closeLists(); out.push('<ol>'); inOl = true; }
+        out.push('<li>' + ol[1] + '</li>');
+        continue;
+      }
+
+      closeLists();
+      if (line === '') {
+        out.push('<br>');
+      } else {
+        out.push('<p>' + line + '</p>');
+      }
+    }
+    closeLists();
+    return out.join('');
   }
 
   function escapeHTML(s) {

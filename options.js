@@ -8,7 +8,7 @@ var DEFAULTS = {
   apiKey: '',
   apiBaseUrl: 'https://api.deepseek.com/v1',
   model: 'deepseek-chat',
-  obsidianUrl: 'http://127.0.0.1:27124',
+  obsidianUrl: 'http://127.0.0.1:27123',
   obsidianKey: '',
   obsidianFolder: '词汇笔记',
   obsidianVault: ''

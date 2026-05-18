@@ -61,14 +61,16 @@
         </div>
         <div class="field">
           <input type="text" id="obsidian-key" placeholder="粘贴 Obsidian API Key" autocomplete="off">
+          <span class="hint">Key 在哪找：Obsidian → 设置⚙️ → 第三方插件 → Local REST API 齿轮⚙️ → Show advanced settings → Non-encrypted (HTTP) server port 下显示的 API key</span>
           <div class="note-box note-obsidian">
             <strong>Obsidian 是什么？</strong><br>
             一款<b>免费的个人笔记软件</b>。连接后，每次的解释可以一键保存为笔记，积累成你的知识库。<br><br>
             <strong>怎么获取 API Key？</strong><br>
             1️⃣ 打开 Obsidian → 左下角齿轮⚙️ →「第三方插件」<br>
-            2️⃣ 点「关闭安全模式」→ 点「浏览」→ 搜 <code>Local REST API</code><br>
-            3️⃣ 安装并启用 → 点插件右侧齿轮 →「Create new key」<br>
-            4️⃣ 复制生成的密钥，粘贴到上面<br>
+            2️⃣ 点「关闭安全模式」→「浏览」→ 搜 <code>Local REST API</code><br>
+            3️⃣ 安装并启用 → 点插件右侧齿轮 → 点「Show advanced settings」<br>
+            4️⃣ 找到「Non-encrypted (HTTP) server port 27123」下面的 API key，复制粘贴到上面<br>
+            5️⃣ 确保 <b>「Enable non-encrypted (HTTP) server」已勾选</b><br>
             ⚠️ 用的时候要保持 Obsidian 开着
           </div>
         </div>
