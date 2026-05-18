@@ -6,7 +6,8 @@
   var popupEl = null;
   var popupShadow = null;
   var isSpeaking = false;
-  var initialExplanation = '';     // 初始解释内容
+  var initialExplanation = '';     // 初始解释内容（含标题）
+  var titleExplain = '';            // AI 生成的概念陈述句标题
   var chatHistory = [];            // {role:'user'|'assistant', content}
   var saveMode = 'explanation';    // 'explanation' | 'full'
 
@@ -212,6 +213,7 @@
       '@keyframes spin{to{transform:rotate(360deg);}}',
       '@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}',
       // Content typography
+      '.note-title{font-size:17px;font-weight:700;margin:0 0 16px;color:#1d1d1f;line-height:1.5;}',
       '.content h3{font-size:16px;font-weight:700;margin:22px 0 6px;color:#1d1d1f;padding-bottom:6px;border-bottom:1px solid #e8e8ed;}',
       '.content h3:first-child{margin-top:0;}',
       '.content p{margin:6px 0 12px;color:#3a3a3c;font-size:15px;line-height:1.7;}',
@@ -382,6 +384,9 @@
       loadingEl.style.display = 'none';
       if (resp && resp.success) {
         initialExplanation = resp.data;
+        // Extract title: first line **概念陈述句**
+        var m = resp.data.match(/^\s*\*\*(.+?)\*\*\s*$/m);
+        titleExplain = m ? m[1] : selectedText;
         contentEl.innerHTML = renderMD(resp.data);
         contentEl.style.display = 'block';
         chatArea.style.display = 'block';
@@ -612,7 +617,7 @@
       var folderOverride = (popupShadow.querySelector('.save-folder-input') || {}).value || '';
       chrome.runtime.sendMessage({
         action: 'saveToObsidian',
-        originalText: selectedText,
+        originalText: titleExplain || selectedText,
         explanation: saveContent,
         sourceUrl: window.location.href,
         folderOverride: folderOverride.trim()
@@ -815,6 +820,8 @@
   function renderMD(md) {
     var h = md
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // Title: first-line bold statement → h2 concept heading
+      .replace(/^\s*\*\*(.+?)\*\*\s*$/m, '<h2 class="note-title">$1</h2>')
       // Line-start labels with priority classification
       .replace(/^\*\*(.+?)\*\*\s*(：:)/gm, function(m, l, c) {
         return '<strong class="' + labelClass(l) + '">' + l + '</strong>' + c;
