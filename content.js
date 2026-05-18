@@ -607,11 +607,11 @@
   // ============================================================
   //  保存 Helper：确保标题包含检索词原文
   // ============================================================
-  function ensureSearchTerm(title, term) {
+  function formatNoteTitle(title, term) {
     if (!term) return title || term;
     if (!title) return term;
-    if (title.toLowerCase().indexOf(term.toLowerCase()) >= 0) return title;
-    return term + ' - ' + title;
+    if (/^[a-zA-Z]/.test(term)) return term + ' - ' + title;
+    return title;
   }
 
   // ============================================================
@@ -718,7 +718,7 @@
           try {
             var jsonStr = resp.data.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '');
             var summary = JSON.parse(jsonStr);
-            var summaryTitle = ensureSearchTerm(summary.title || (titleExplain || selectedText), selectedText);
+            var summaryTitle = formatNoteTitle(summary.title || (titleExplain || selectedText), selectedText);
             executeSave(summaryTitle, summary.summary || resp.data);
           } catch (e) {
             executeSave(titleExplain || selectedText, resp.data);
@@ -737,7 +737,7 @@
     }
 
     // Explanation only (or full with no chat history yet)
-    executeSave(ensureSearchTerm(titleExplain || selectedText, selectedText), explanationText);
+    executeSave(formatNoteTitle(titleExplain || selectedText, selectedText), explanationText);
   }
 
   function openObsidianUri(uri) {
