@@ -23,7 +23,7 @@
     });
     var btn = document.createElement('button');
     var icon = document.createElement('img');
-    icon.src = chrome.runtime.getURL('icons/icon16.png');
+    try { icon.src = chrome.runtime.getURL('icons/icon16.png'); } catch(e) { icon.style.display = 'none'; }
     icon.style.cssText = 'width:18px;height:18px;vertical-align:middle;margin-right:6px;flex-shrink:0;';
     btn.appendChild(icon);
     var label = document.createElement('span');
