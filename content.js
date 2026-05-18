@@ -811,9 +811,15 @@
   // ============================================================
   //  结构化渲染 & markdown 重建
   // ============================================================
-  function levelClass(level) {
-    if (level === 'primary') return 'label label-primary';
-    if (level === 'insight') return 'label label-insight';
+  // Label → visual priority (前端硬编码，不消耗 token)
+  var LABEL_LEVEL = {
+    '👤是谁': 'primary', '💬一句话': 'primary', '📝中文意思': 'primary', '🔍原来如此': 'primary',
+    '💡核心印象': 'insight', '🎯为什么重要': 'insight', '💡核心意象': 'insight', '📌记牢它': 'insight'
+  };
+
+  function levelClass(label) {
+    if (LABEL_LEVEL[label] === 'primary') return 'label label-primary';
+    if (LABEL_LEVEL[label] === 'insight') return 'label label-insight';
     return 'label label-secondary';
   }
 
@@ -828,7 +834,7 @@
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var sec = sections[i];
-      html += '<p><strong class="' + levelClass(sec.level) + '">' +
+      html += '<p><strong class="' + levelClass(sec.label) + '">' +
         escapeHTML(sec.label || '') + '</strong>：' +
         renderInlineMD(sec.text || '') + '</p>';
     }
