@@ -605,6 +605,16 @@
   }
 
   // ============================================================
+  //  保存 Helper：确保标题包含检索词原文
+  // ============================================================
+  function ensureSearchTerm(title, term) {
+    if (!term) return title || term;
+    if (!title) return term;
+    if (title.toLowerCase().indexOf(term.toLowerCase()) >= 0) return title;
+    return term + ' - ' + title;
+  }
+
+  // ============================================================
   //  保存（三途径：Obsidian API / 下载 / 剪贴板）
   // ============================================================
   function doSave(way) {
@@ -708,8 +718,8 @@
           try {
             var jsonStr = resp.data.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '');
             var summary = JSON.parse(jsonStr);
-            var summaryContent = '## ' + (summary.title || '总结') + '\n\n' + (summary.summary || resp.data);
-            executeSave(titleExplain || selectedText, summaryContent);
+            var summaryTitle = ensureSearchTerm(summary.title || (titleExplain || selectedText), selectedText);
+            executeSave(summaryTitle, summary.summary || resp.data);
           } catch (e) {
             executeSave(titleExplain || selectedText, resp.data);
           }
@@ -726,8 +736,8 @@
       return;
     }
 
-    // Explanation only (or full with no chat history yet) — H1 always includes original term
-    executeSave(selectedText, explanationText);
+    // Explanation only (or full with no chat history yet)
+    executeSave(ensureSearchTerm(titleExplain || selectedText, selectedText), explanationText);
   }
 
   function openObsidianUri(uri) {
