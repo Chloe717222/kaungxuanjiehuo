@@ -708,7 +708,8 @@
           try {
             var jsonStr = resp.data.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '');
             var summary = JSON.parse(jsonStr);
-            executeSave(summary.title || (titleExplain || selectedText), summary.summary || resp.data);
+            var summaryContent = '## ' + (summary.title || '总结') + '\n\n' + (summary.summary || resp.data);
+            executeSave(titleExplain || selectedText, summaryContent);
           } catch (e) {
             executeSave(titleExplain || selectedText, resp.data);
           }
@@ -725,8 +726,8 @@
       return;
     }
 
-    // Explanation only (or full with no chat history yet)
-    executeSave(titleExplain || selectedText, explanationText);
+    // Explanation only (or full with no chat history yet) — H1 always includes original term
+    executeSave(selectedText, explanationText);
   }
 
   function openObsidianUri(uri) {
