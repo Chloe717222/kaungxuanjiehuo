@@ -212,11 +212,12 @@
       '@keyframes spin{to{transform:rotate(360deg);}}',
       '@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}',
       // Content typography
-      '.content h3{font-size:15px;font-weight:600;margin:18px 0 6px;color:#1d1d1f;letter-spacing:-0.01em;}',
+      '.content h3{font-size:16px;font-weight:700;margin:22px 0 6px;color:#1d1d1f;padding-bottom:6px;border-bottom:1px solid #e8e8ed;}',
       '.content h3:first-child{margin-top:0;}',
-      '.content p{margin:4px 0 12px;color:#3a3a3c;font-size:15px;line-height:1.65;}',
+      '.content p{margin:6px 0 12px;color:#3a3a3c;font-size:15px;line-height:1.7;}',
+      '.content strong.label{display:inline-block;color:#1d1d1f;font-weight:600;background:#e8f0fe;padding:1px 8px;border-radius:4px;margin:3px 2px 3px 0;}',
       '.content strong{color:#1d1d1f;font-weight:600;}',
-      '.content em{color:#86868b;}',
+      '.content em{color:#86868b;font-style:normal;font-size:14px;}',
       '.content blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #007aff;background:#f5f5f7;border-radius:0 10px 10px 0;color:#3a3a3c;font-size:14px;}',
       // Chat area
       '.chat-area{margin-top:16px;}',
@@ -797,6 +798,9 @@
   function renderMD(md) {
     var h = md
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // Line-start labels: **label**：content → <strong class="label">label</strong>：content
+      .replace(/^\*\*(.+?)\*\*\s*(：:)/gm,'<strong class="label">$1</strong>$2')
+      // Inline bold
       .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
       .replace(/\*(.+?)\*/g,'<em>$1</em>')
       .replace(/^###?\s(.+)$/gm,'<h3>$1</h3>')
