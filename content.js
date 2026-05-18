@@ -171,8 +171,8 @@
       '<div class="footer" style="display:none;">' +
         '<div class="save-mode-row">' +
           '<span class="save-mode-label">保存至知识库：</span>' +
-          '<button class="save-mode-btn active" data-mode="explanation" title="只保存 AI 给的第一条解释">仅首框解释</button>' +
-          '<button class="save-mode-btn" data-mode="full" title="保存解释 + 后续追问的全部对话">完整对话记录</button>' +
+          '<button class="save-mode-btn active" data-mode="explanation" title="仅保存核心解释，不含追问">仅核心解释</button>' +
+          '<button class="save-mode-btn" data-mode="full" title="整合解释和追问为一篇结构化笔记">含追问笔记</button>' +
         '</div>' +
         '<div class="save-folder-row">' +
           '<span class="save-folder-label">📁</span>' +
@@ -605,11 +605,15 @@
 
     var fullText = '';
     if (saveMode === 'full') {
-      fullText = '## 初始解释\n\n' + explanationText + '\n\n## 追问记录\n\n';
-      for (var i = 0; i < chatHistory.length; i++) {
-        var m = chatHistory[i];
-        fullText += m.role === 'user' ? '**🙋 追问**：' : '**🤖 回答**：';
-        fullText += m.content + '\n\n';
+      fullText = explanationText;
+      if (chatHistory.length > 0) {
+        fullText += '\n\n---\n\n## 追问\n\n';
+        for (var i = 0; i < chatHistory.length; i++) {
+          var m = chatHistory[i];
+          fullText += m.role === 'user'
+            ? '**Q: ' + m.content + '**\n\n'
+            : m.content + '\n\n';
+        }
       }
     }
     var saveContent = saveMode === 'full' ? fullText : explanationText;
