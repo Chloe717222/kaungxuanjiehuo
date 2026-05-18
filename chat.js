@@ -67,7 +67,7 @@ function addMsg(role, content, isTyping) {
   var div = document.createElement('div');
   div.className = 'msg ' + role;
   if (isTyping) div.classList.add('typing');
-  div.textContent = content;
+  div.innerHTML = renderChatMD(content);
   els.messages.appendChild(div);
   els.messages.scrollTop = els.messages.scrollHeight;
   if (!isTyping) chatHistory.push({ role: role, content: content });
@@ -149,6 +149,15 @@ function doSaveChat(way, btn) {
 els.saveObsidian.addEventListener('click', function() { doSaveChat('obsidian', els.saveObsidian); });
 els.saveDownload.addEventListener('click', function() { doSaveChat('download', els.saveDownload); });
 els.saveClipboard.addEventListener('click', function() { doSaveChat('clipboard', els.saveClipboard); });
+
+function renderChatMD(md) {
+  var d = document.createElement('div');
+  d.textContent = md;
+  return '<p>' + d.innerHTML
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>') + '</p>';
+}
 
 function showToast(msg) {
   var t = document.createElement('div');

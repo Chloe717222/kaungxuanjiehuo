@@ -232,6 +232,10 @@
       '.chat-msg{padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.55;max-width:92%;word-break:break-word;}',
       '.chat-msg.user{align-self:flex-end;background:#007aff;color:#fff;border-bottom-right-radius:4px;}',
       '.chat-msg.assistant{align-self:flex-start;background:#f5f5f7;color:#1d1d1f;border-bottom-left-radius:4px;}',
+      '.chat-msg p{margin:2px 0;}',
+      '.chat-msg p:first-child{margin-top:0;}',
+      '.chat-msg p:last-child{margin-bottom:0;}',
+      '.chat-msg strong{font-weight:700;color:#1d1d1f;}',
       '.chat-input-row{display:flex;gap:8px;}',
       '.chat-input{flex:1;padding:8px 12px;border:1px solid #d1d1d6;border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1d1d1f;transition:border-color 0.15s;}',
       '.chat-input:focus{border-color:#007aff;box-shadow:0 0 0 2px rgba(0,122,255,0.1);}',
@@ -584,7 +588,7 @@
     var msgs = popupShadow.querySelector('.chat-messages');
     var div = document.createElement('div');
     div.className = 'chat-msg ' + role;
-    div.textContent = content;
+    div.innerHTML = renderChatMD(content);
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
     chatHistory.push({ role: role, content: content });
@@ -842,6 +846,13 @@
       lines.push('**' + iconLabel(s.label || '') + '**：' + (s.text || ''));
     }
     return lines.join('\n');
+  }
+
+  function renderChatMD(md) {
+    return '<p>' + escapeHTML(md)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>') + '</p>';
   }
 
   function escapeHTML(s) {
