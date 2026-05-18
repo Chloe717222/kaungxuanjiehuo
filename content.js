@@ -6,7 +6,8 @@
   var popupEl = null;
   var popupShadow = null;
   var isSpeaking = false;
-  var initialExplanation = '';     // 初始解释内容（含标题）
+  var initialExplanation = '';     // 初始解释内容（JSON 原始响应）
+  var explainData = null;           // 解析后的结构化数据
   var titleExplain = '';            // AI 生成的概念陈述句标题
   var noteTags = '';                // AI 自动归类的标签
   var chatHistory = [];            // {role:'user'|'assistant', content}
@@ -62,7 +63,7 @@
   function createPopup(hasObsidian) {
     removePopup();
     // reset state
-    initialExplanation = ''; chatHistory = []; saveMode = 'explanation';
+    initialExplanation = ''; explainData = null; chatHistory = []; saveMode = 'explanation';
 
     popupEl = document.createElement('div');
     popupEl.id = 'we-popup-host';
@@ -268,10 +269,6 @@
   }
 
   // ============================================================
-  //  保存选项 toggle
-  // ============================================================
-
-  // ============================================================
   //  Draggable + Resizable
   // ============================================================
   var resizeEdge = null;
@@ -385,15 +382,18 @@
       loadingEl.style.display = 'none';
       if (resp && resp.success) {
         initialExplanation = resp.data;
-        // Extract title: first line **概念陈述句**
-        var m = resp.data.match(/^\s*\*\*(.+?)\*\*\s*$/m);
-        titleExplain = m ? m[1] : selectedText;
-        // Extract tags: line after title
-        var tm = resp.data.match(/\n标签：(.+?)(?:\n|$)/);
-        noteTags = tm ? tm[1].trim() : '';
-        // Strip tags line for display
-        var displayText = resp.data.replace(/\n标签：.+?(\n|$)/, '\n');
-        contentEl.innerHTML = renderMD(displayText);
+        try {
+          var jsonStr = resp.data.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '');
+          explainData = JSON.parse(jsonStr);
+          titleExplain = explainData.title || selectedText;
+          noteTags = (explainData.tags || []).join(', ');
+          contentEl.innerHTML = renderStructured(explainData);
+        } catch (e) {
+          // Fallback: plain text
+          titleExplain = selectedText;
+          noteTags = '';
+          contentEl.textContent = resp.data;
+        }
         contentEl.style.display = 'block';
         chatArea.style.display = 'block';
       } else {
@@ -566,7 +566,7 @@
     chrome.runtime.sendMessage({
       action: 'chat',
       originalText: selectedText,
-      explanation: initialExplanation,
+      explanation: explainData ? buildMarkdown(explainData) : initialExplanation,
       history: chatHistory.slice(0, -1), // exclude the one just added
       question: question
     }, function(resp) {
@@ -602,7 +602,7 @@
   function doSave(way) {
     if (!popupShadow) return;
 
-    var explanationText = initialExplanation || '';
+    var explanationText = explainData ? buildMarkdown(explainData) : (initialExplanation || '');
 
     var fullText = '';
     if (saveMode === 'full') {
@@ -809,37 +809,40 @@
   }
 
   // ============================================================
-  //  Markdown 渲染
+  //  结构化渲染 & markdown 重建
   // ============================================================
-  //  labelClass — 判断标签是核心答案、关键洞察还是补充信息
-  //  核心答案（红色标签）：直接回答"这是什么"——是谁、一句话、中文意思、原来如此
-  //  关键洞察（黄色标签）：核心印象/意象、记牢它、为什么重要
-  //  补充信息（灰色标签）：词根拆解、词性、常见场景、拓展阅读
-  // ============================================================
-  function labelClass(label) {
-    var primary = ['👤 是谁','💬 一句话','📝 中文意思','🔍 原来如此'];
-    var insight = ['💡 核心印象','💡 核心意象','📌 记牢它','🎯 为什么重要','🎯 核心意象','💡 主要用途'];
-    if (primary.indexOf(label) >= 0) return 'label label-primary';
-    if (insight.indexOf(label) >= 0) return 'label label-insight';
+  function levelClass(level) {
+    if (level === 'primary') return 'label label-primary';
+    if (level === 'insight') return 'label label-insight';
     return 'label label-secondary';
   }
 
-  function renderMD(md) {
-    var h = md
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      // Title: first-line bold statement → h2 concept heading
-      .replace(/^\s*\*\*(.+?)\*\*\s*$/m, '<h2 class="note-title">$1</h2>')
-      // Line-start labels with priority classification
-      .replace(/^\*\*(.+?)\*\*\s*(：:)/gm, function(m, l, c) {
-        return '<strong class="' + labelClass(l) + '">' + l + '</strong>' + c;
-      })
-      // Inline bold
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g,'<em>$1</em>')
-      .replace(/^###?\s(.+)$/gm,'<h3>$1</h3>')
-      .replace(/\n\n/g,'</p><p>')
-      .replace(/\n/g,'<br>');
-    return '<p>'+h+'</p>';
+  function renderInlineMD(text) {
+    return escapeHTML(text)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+  }
+
+  function renderStructured(data) {
+    var html = '<h2 class="note-title">' + escapeHTML(data.title || '') + '</h2>';
+    var sections = data.sections || [];
+    for (var i = 0; i < sections.length; i++) {
+      var sec = sections[i];
+      html += '<p><strong class="' + levelClass(sec.level) + '">' +
+        escapeHTML(sec.label || '') + '</strong>：' +
+        renderInlineMD(sec.text || '') + '</p>';
+    }
+    return html;
+  }
+
+  function buildMarkdown(data) {
+    var lines = ['**' + (data.title || '') + '**', '', '标签：' + (data.tags || []).join(', ')];
+    var sections = data.sections || [];
+    for (var i = 0; i < sections.length; i++) {
+      var s = sections[i];
+      lines.push('**' + (s.label || '') + '**：' + (s.text || ''));
+    }
+    return lines.join('\n');
   }
 
   function escapeHTML(s) {
