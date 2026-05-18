@@ -1,15 +1,13 @@
 var PRESETS = {
-  deepseek: { name: 'DeepSeek', url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-  openai:   { name: 'OpenAI',   url: 'https://api.openai.com/v1',     model: 'gpt-4o' },
-  custom:   { name: '自定义',    url: '',                              model: '' }
+  deepseek: { url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+  openai:   { url: 'https://api.openai.com/v1',   model: 'gpt-4o' },
+  custom:   { url: '',                             model: '' }
 };
 
 var DEFAULTS = {
   apiKey: '',
   apiBaseUrl: 'https://api.deepseek.com/v1',
   model: 'deepseek-chat',
-  deepseekKey: '',
-  deepseekModel: '',
   obsidianUrl: 'http://127.0.0.1:27124',
   obsidianKey: '',
   obsidianFolder: '词汇笔记',
@@ -71,10 +69,10 @@ chrome.storage.sync.get(DEFAULTS, function(items) {
   if (!found) {
     selectPreset('custom');
     els.apiUrl.value = savedUrl;
-    els.modelName.value = items.model || items.deepseekModel || '';
+    els.modelName.value = items.model || '';
   }
 
-  els.apiKey.value = items.apiKey || items.deepseekKey || '';
+  els.apiKey.value = items.apiKey || '';
   els.obsidianUrl.value = items.obsidianUrl || DEFAULTS.obsidianUrl;
   els.obsidianKey.value = items.obsidianKey || '';
   els.obsidianFolder.value = items.obsidianFolder || DEFAULTS.obsidianFolder;

@@ -1,17 +1,13 @@
 var PRESETS = {
-  deepseek: { name: 'DeepSeek', url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-  openai:   { name: 'OpenAI',   url: 'https://api.openai.com/v1',     model: 'gpt-4o' },
-  custom:   { name: '自定义',    url: '',                              model: '' }
+  deepseek: { url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+  openai:   { url: 'https://api.openai.com/v1',   model: 'gpt-4o' },
+  custom:   { url: '',                             model: '' }
 };
 
 var DEFAULTS = {
   apiKey: '',
   apiBaseUrl: 'https://api.deepseek.com/v1',
   model: 'deepseek-chat',
-  // legacy
-  deepseekKey: '',
-  deepseekModel: '',
-  // obsidian
   obsidianKey: '',
   obsidianUrl: 'http://127.0.0.1:27124',
   obsidianFolder: '词汇笔记'
@@ -48,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   chrome.storage.sync.get(DEFAULTS, function(items) {
     state = items;
-    if (items.apiKey || items.deepseekKey) {
+    if (items.apiKey) {
       showReady();
     } else {
       showEmpty();
@@ -88,7 +84,7 @@ function showReady() {
   els.stateEmpty.style.display = 'none';
   els.stateReady.style.display = 'block';
 
-  var model = state.model || state.deepseekModel || 'deepseek-chat';
+  var model = state.model || 'deepseek-chat';
   var baseUrl = state.apiBaseUrl || 'https://api.deepseek.com/v1';
   els.infoModel.textContent = model + ' @ ' + baseUrl.replace('https://', '').replace('http://', '');
 
