@@ -806,6 +806,17 @@
   // ============================================================
   //  结构化渲染 & markdown 重建
   // ============================================================
+  var LABEL_ICON = {
+    '是谁': '👤', '核心印象': '💡', '为什么重要': '🎯', '感兴趣': '🔗',
+    '中文意思': '📝', '词根拆解': '🧩', '词性': '💡', '核心意象': '🎯', '记牢它': '📌',
+    '领域': '📚', '故事': '📖', '原来如此': '🔍',
+    '一句话': '💬', '常出现在': '📍', '补充': '💡'
+  };
+
+  function iconLabel(label) {
+    return (LABEL_ICON[label] || '') + label;
+  }
+
   function renderInlineMD(text) {
     return escapeHTML(text)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -817,7 +828,7 @@
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var sec = sections[i];
-      html += '<p><strong>' + escapeHTML(sec.label || '') + '</strong>：' +
+      html += '<p><strong>' + escapeHTML(iconLabel(sec.label || '')) + '</strong>：' +
         renderInlineMD(sec.text || '') + '</p>';
     }
     return html;
@@ -828,7 +839,7 @@
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var s = sections[i];
-      lines.push('**' + (s.label || '') + '**：' + (s.text || ''));
+      lines.push('**' + iconLabel(s.label || '') + '**：' + (s.text || ''));
     }
     return lines.join('\n');
   }
