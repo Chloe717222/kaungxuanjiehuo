@@ -610,7 +610,10 @@
   function formatNoteTitle(title, term) {
     if (!term) return title || term;
     if (!title) return term;
-    if (/^[a-zA-Z]/.test(term)) return term + ' ' + title;
+    if (/^[a-zA-Z]/.test(term)) {
+      if (title.toLowerCase().indexOf(term.toLowerCase()) >= 0) return title;
+      return term + ' ' + title;
+    }
     return title;
   }
 
