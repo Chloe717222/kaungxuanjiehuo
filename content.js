@@ -166,11 +166,10 @@
       '</div>' +
       // Footer
       '<div class="footer" style="display:none;">' +
-        '<div class="save-hint">💡 把解释存到你的知识库</div>' +
         '<div class="save-mode-row">' +
-          '<span class="save-mode-label">保存内容：</span>' +
-          '<button class="save-mode-btn active" data-mode="explanation" title="只保存 AI 给的第一条解释">仅这条解释</button>' +
-          '<button class="save-mode-btn" data-mode="full" title="保存解释 + 后续追问的全部对话">含追问记录</button>' +
+          '<span class="save-mode-label">保存至知识库：</span>' +
+          '<button class="save-mode-btn active" data-mode="explanation" title="只保存 AI 给的第一条解释">仅首框解释</button>' +
+          '<button class="save-mode-btn" data-mode="full" title="保存解释 + 后续追问的全部对话">完整对话记录</button>' +
         '</div>' +
         '<div class="save-folder-row">' +
           '<span class="save-folder-label">📁</span>' +
@@ -241,7 +240,6 @@
       '.error-msg{padding:20px 0;text-align:center;color:#ff3b30;font-size:14px;}',
       // Footer
       '.footer{padding:12px 20px;border-top:1px solid #f0f0f0;flex-shrink:0;display:flex;flex-direction:column;gap:8px;}',
-      '.save-hint{font-size:11px;color:#86868b;text-align:center;}',
       '.save-mode-row{display:flex;align-items:center;gap:6px;}',
       '.save-mode-label{font-size:12px;color:#86868b;flex-shrink:0;}',
       '.save-mode-btn{padding:5px 12px;border:1px solid #d0d0d0;border-radius:14px;background:#fff;color:#555;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;}',
@@ -588,7 +586,7 @@
   function doSave(way) {
     if (!popupShadow) return;
 
-    var explanationText = popupShadow.querySelector('.content').textContent || '';
+    var explanationText = initialExplanation || '';
 
     var fullText = '';
     if (saveMode === 'full') {
