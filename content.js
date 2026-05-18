@@ -836,7 +836,7 @@
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var sec = sections[i];
-      html += '<p><strong>' + escapeHTML(iconLabel(sec.label || '')) + '</strong>：' +
+      html += '<p>' + escapeHTML(iconLabel(sec.label || '')) + '：' +
         renderInlineMD(sec.text || '') + '</p>';
     }
     return html;
@@ -847,7 +847,7 @@
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var s = sections[i];
-      lines.push('**' + iconLabel(s.label || '') + '**：' + (s.text || ''));
+      lines.push(iconLabel(s.label || '') + '：' + (s.text || ''));
     }
     return lines.join('\n');
   }
