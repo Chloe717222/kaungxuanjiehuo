@@ -100,7 +100,6 @@
     r.querySelector('.close').addEventListener('click', removePopup);
     r.querySelector('.speak-btn').addEventListener('click', speak);
     r.querySelector('.chat-send').addEventListener('click', sendChat);
-    r.querySelector('.re-explain-btn').addEventListener('click', reExplain);
     r.querySelector('.chat-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
     });
@@ -164,10 +163,6 @@
         '</div>' +
         // Error
         '<div class="error-msg" style="display:none;"></div>' +
-        // Re-explain
-        '<div class="re-explain-row" style="display:none;">' +
-          '<button class="re-explain-btn">🔄 换种方式解释</button>' +
-        '</div>' +
       '</div>' +
       // Footer
       '<div class="footer" style="display:none;">' +
@@ -262,12 +257,7 @@
       '.save-way:hover{background:#e8e8ed;}',
       '.save-way:active{background:#dcdce0;}',
       '.save-way:disabled{opacity:0.5;cursor:default;}',
-      '.save-way.saved{background:#e3f9e5;color:#1d7a2b;}',
-      // Re-explain
-      '.re-explain-row{text-align:center;padding:8px 0 0;}',
-      '.re-explain-btn{padding:6px 16px;border:1px solid #d0d0d0;border-radius:14px;background:#fff;color:#555;font-size:12px;font-family:inherit;cursor:pointer;transition:all 0.15s;}',
-      '.re-explain-btn:hover{background:#f5f5f7;border-color:#007aff;color:#007aff;}',
-      '.re-explain-btn:disabled{opacity:0.5;cursor:default;}'
+      '.save-way.saved{background:#e3f9e5;color:#1d7a2b;}'
     ].join('');
   }
 
@@ -392,7 +382,6 @@
         contentEl.innerHTML = renderMD(resp.data);
         contentEl.style.display = 'block';
         chatArea.style.display = 'block';
-        root.querySelector('.re-explain-row').style.display = 'block';
       } else {
         errorEl.textContent = '获取解释失败: ' + (resp ? resp.error : '未知');
         errorEl.style.display = 'block';
@@ -542,30 +531,6 @@
     });
   }
 
-  // ============================================================
-  //  换种方式解释
-  // ============================================================
-  function reExplain() {
-    if (!popupShadow) return;
-    var btn = popupShadow.querySelector('.re-explain-btn');
-    var contentEl = popupShadow.querySelector('.content');
-    btn.textContent = '🔄 正在换种方式...'; btn.disabled = true;
-
-    chrome.runtime.sendMessage({
-      action: 'reexplain',
-      originalText: selectedText,
-      previousExplanation: initialExplanation
-    }, function(resp) {
-      if (!popupShadow) return;
-      btn.textContent = '🔄 换种方式解释'; btn.disabled = false;
-      if (resp && resp.success) {
-        initialExplanation = resp.data;
-        contentEl.innerHTML = renderMD(resp.data);
-        // Scroll to top of content
-        popupShadow.querySelector('.body').scrollTop = contentEl.offsetTop - 20;
-      }
-    });
-  }
 
   // ============================================================
   //  追问对话

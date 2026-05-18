@@ -304,50 +304,10 @@ async function callAIGeneral(history) {
   return data.choices[0].message.content;
 }
 
-// --- Re-explain ---
-async function callReExplain(text, previousExplanation) {
-  const raw = await chrome.storage.sync.get(DEFAULTS);
-  const s = getSettings(raw);
-  if (!s.apiKey) throw new Error('请先配置 API Key');
-
-  const prompt = '你之前对"' + text + '"的解释是："""' + previousExplanation + '"""\n\n现在请用完全不同的角度或比喻重新解释一遍。换一个生活化的类比，或者从另一个领域切入。格式要求和之前一样。';
-
-  const resp = await fetch(s.apiBaseUrl + '/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + s.apiKey
-    },
-    body: JSON.stringify({
-      model: s.model,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.9,
-      max_tokens: 600
-    })
-  });
-
-  if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error('API 调用失败 (' + resp.status + '): ' + err);
-  }
-  const data = await resp.json();
-  return data.choices[0].message.content;
-}
-
 // --- Message handler ---
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === 'explain') {
     callAI(request.text)
-      .then(function(result) { sendResponse({ success: true, data: result }); })
-      .catch(function(err) { sendResponse({ success: false, error: err.message }); });
-    return true;
-  }
-
-  if (request.action === 'reexplain') {
-    callReExplain(request.originalText, request.previousExplanation)
       .then(function(result) { sendResponse({ success: true, data: result }); })
       .catch(function(err) { sendResponse({ success: false, error: err.message }); });
     return true;
