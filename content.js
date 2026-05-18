@@ -219,12 +219,7 @@
       '.content h3{font-size:16px;font-weight:700;margin:22px 0 6px;color:#1d1d1f;padding-bottom:6px;border-bottom:1px solid #e8e8ed;}',
       '.content h3:first-child{margin-top:0;}',
       '.content p{margin:6px 0 12px;color:#3a3a3c;font-size:15px;line-height:1.7;}',
-      '.content strong.label{display:inline-block;font-weight:600;padding:1px 8px;border-radius:4px;margin:3px 2px 3px 0;}',
-      '.content strong.label-primary{background:#fce8e6;color:#c5221f;}',    /* 标签：核心答案（红） */
-      '.content strong.label-insight{background:#fef7e0;color:#e37400;}',   /* 标签：关键洞察（黄） */
-      '.content strong.label-secondary{background:#f5f5f7;color:#86868b;}', /* 标签：补充信息（灰） */
-      '.content p strong:not([class]){font-weight:700;color:#1d1d1f;}', /* 内容关键句：纯粗体 */
-      '.content strong{color:#1d1d1f;font-weight:600;}',
+      '.content strong{font-weight:700;color:#1d1d1f;}',
       '.content em{color:#86868b;font-style:normal;font-size:14px;}',
       '.content blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #007aff;background:#f5f5f7;border-radius:0 10px 10px 0;color:#3a3a3c;font-size:14px;}',
       // Chat area
@@ -811,18 +806,6 @@
   // ============================================================
   //  结构化渲染 & markdown 重建
   // ============================================================
-  // Label → visual priority (前端硬编码，不消耗 token)
-  var LABEL_LEVEL = {
-    '👤是谁': 'primary', '💬一句话': 'primary', '📝中文意思': 'primary', '🔍原来如此': 'primary',
-    '💡核心印象': 'insight', '🎯为什么重要': 'insight', '💡核心意象': 'insight', '📌记牢它': 'insight'
-  };
-
-  function levelClass(label) {
-    if (LABEL_LEVEL[label] === 'primary') return 'label label-primary';
-    if (LABEL_LEVEL[label] === 'insight') return 'label label-insight';
-    return 'label label-secondary';
-  }
-
   function renderInlineMD(text) {
     return escapeHTML(text)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -834,15 +817,14 @@
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var sec = sections[i];
-      html += '<p><strong class="' + levelClass(sec.label) + '">' +
-        escapeHTML(sec.label || '') + '</strong>：' +
+      html += '<p><strong>' + escapeHTML(sec.label || '') + '</strong>：' +
         renderInlineMD(sec.text || '') + '</p>';
     }
     return html;
   }
 
   function buildMarkdown(data) {
-    var lines = ['**' + (data.title || '') + '**', '', '标签：' + (data.tags || []).join(', ')];
+    var lines = ['**' + (data.title || '') + '**'];
     var sections = data.sections || [];
     for (var i = 0; i < sections.length; i++) {
       var s = sections[i];

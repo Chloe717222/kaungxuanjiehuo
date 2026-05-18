@@ -91,10 +91,7 @@ async function saveToObsidian(originalText, explanation, sourceUrl, folderOverri
     '',
     '# ' + originalText.replace(/\n/g, ' '),
     '',
-    explanation,
-    '',
-    '---',
-    '原文链接: ' + sourceUrl
+    explanation
   ].join('\n');
 
   const folder = folderOverride || settings.obsidianFolder || DEFAULTS.obsidianFolder;
@@ -258,7 +255,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
 
   if (request.action === 'saveToObsidian') {
-    saveToObsidian(request.originalText, request.explanation, request.sourceUrl, request.folderOverride)
+    saveToObsidian(request.originalText, request.explanation, request.sourceUrl, request.folderOverride, request.tags)
       .then(function(result) { sendResponse({ success: true, data: result }); })
       .catch(function(err) { sendResponse({ success: false, error: err.message }); });
     return true;
