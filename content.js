@@ -174,7 +174,7 @@
         '</div>' +
         '<div class="save-folder-row">' +
           '<span class="save-folder-label">📁</span>' +
-          '<input type="text" class="save-folder-input" placeholder="输入文件夹名（可选）">' +
+          '<input type="text" class="save-folder-input" placeholder="填你要保存笔记到知识库里哪个文件夹">' +
         '</div>' +
         '<div class="save-actions">' +
           '<button class="save-way" data-way="obsidian" title="需要 Obsidian 运行中且已配置 API Key">📡 同步到知识库</button>' +
@@ -447,7 +447,7 @@
       '<div class="footer" style="display:flex;">' +
         '<div class="save-folder-row">' +
           '<span class="save-folder-label">📁</span>' +
-          '<input type="text" class="save-folder-input" placeholder="保存到哪个文件夹？">' +
+          '<input type="text" class="save-folder-input" placeholder="填你要保存笔记到知识库里哪个文件夹">' +
         '</div>' +
         '<div class="save-actions">' +
           '<button class="save-way" data-way="obsidian" title="需要知识库运行中且已配置 API Key">📡 同步到知识库</button>' +
