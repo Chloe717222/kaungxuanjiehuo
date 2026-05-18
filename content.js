@@ -215,7 +215,10 @@
       '.content h3{font-size:16px;font-weight:700;margin:22px 0 6px;color:#1d1d1f;padding-bottom:6px;border-bottom:1px solid #e8e8ed;}',
       '.content h3:first-child{margin-top:0;}',
       '.content p{margin:6px 0 12px;color:#3a3a3c;font-size:15px;line-height:1.7;}',
-      '.content strong.label{display:inline-block;color:#1d1d1f;font-weight:600;background:#e8f0fe;padding:1px 8px;border-radius:4px;margin:3px 2px 3px 0;}',
+      '.content strong.label{display:inline-block;font-weight:600;padding:1px 8px;border-radius:4px;margin:3px 2px 3px 0;}',
+      '.content strong.label-primary{background:#fce8e6;color:#c5221f;}',    /* 核心答案：红底 */
+      '.content strong.label-insight{background:#fef7e0;color:#e37400;}',   /* 关键洞察：黄底 */
+      '.content strong.label-secondary{background:#f5f5f7;color:#86868b;}', /* 补充信息：灰底 */
       '.content strong{color:#1d1d1f;font-weight:600;}',
       '.content em{color:#86868b;font-style:normal;font-size:14px;}',
       '.content blockquote{margin:10px 0;padding:10px 14px;border-left:3px solid #007aff;background:#f5f5f7;border-radius:0 10px 10px 0;color:#3a3a3c;font-size:14px;}',
@@ -795,11 +798,26 @@
   // ============================================================
   //  Markdown 渲染
   // ============================================================
+  //  labelClass — 判断标签是核心答案、关键洞察还是补充信息
+  //  核心答案（红色标签）：直接回答"这是什么"——是谁、一句话、中文意思、原来如此
+  //  关键洞察（黄色标签）：核心印象/意象、记牢它、为什么重要
+  //  补充信息（灰色标签）：词根拆解、词性、常见场景、拓展阅读
+  // ============================================================
+  function labelClass(label) {
+    var primary = ['👤 是谁','💬 一句话','📝 中文意思','🔍 原来如此'];
+    var insight = ['💡 核心印象','💡 核心意象','📌 记牢它','🎯 为什么重要','🎯 核心意象','💡 主要用途'];
+    if (primary.indexOf(label) >= 0) return 'label label-primary';
+    if (insight.indexOf(label) >= 0) return 'label label-insight';
+    return 'label label-secondary';
+  }
+
   function renderMD(md) {
     var h = md
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      // Line-start labels: **label**：content → <strong class="label">label</strong>：content
-      .replace(/^\*\*(.+?)\*\*\s*(：:)/gm,'<strong class="label">$1</strong>$2')
+      // Line-start labels with priority classification
+      .replace(/^\*\*(.+?)\*\*\s*(：:)/gm, function(m, l, c) {
+        return '<strong class="' + labelClass(l) + '">' + l + '</strong>' + c;
+      })
       // Inline bold
       .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
       .replace(/\*(.+?)\*/g,'<em>$1</em>')
