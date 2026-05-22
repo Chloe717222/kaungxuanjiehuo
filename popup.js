@@ -97,6 +97,7 @@ function showReady() {
     els.infoObsidian.className = 'info-val obsidian-status disconnected';
     els.obsidianCta.classList.remove('hidden');
   }
+
 }
 
 // ---- Save ----

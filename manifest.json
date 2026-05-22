@@ -9,10 +9,11 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "tts"],
   "host_permissions": [
     "https://api.deepseek.com/*",
     "https://api.openai.com/*",
+    "https://*/",
     "http://127.0.0.1:*/*",
     "https://127.0.0.1:*/*",
     "http://localhost:*/*",

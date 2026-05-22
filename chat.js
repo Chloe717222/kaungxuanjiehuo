@@ -3,9 +3,9 @@ var isSpeaking = false;
 
 var els = {
   messages: document.getElementById('messages'),
+  messagesInner: document.querySelector('.messages-inner'),
   input: document.getElementById('input'),
   sendBtn: document.getElementById('sendBtn'),
-  speakInputBtn: document.getElementById('speakInputBtn'),
   folderInput: document.getElementById('folderInput'),
   saveObsidian: document.getElementById('saveObsidian'),
   saveDownload: document.getElementById('saveDownload'),
@@ -38,36 +38,34 @@ function send() {
   els.input.value = '';
   els.input.style.height = 'auto';
 
-  var typingEl = addMsg('assistant', '...', true);
+  // Create streaming message container (no typing indicator)
+  var msgDiv = document.createElement('div');
+  msgDiv.className = 'msg assistant';
+  (els.messagesInner || els.messages).appendChild(msgDiv);
+  els.messages.scrollTop = els.messages.scrollHeight;
 
-  chrome.runtime.sendMessage({
-    action: 'generalChat',
-    history: chatHistory
-  }, function(resp) {
-    if (typingEl && typingEl.parentNode) typingEl.remove();
-    els.input.disabled = false; els.sendBtn.disabled = false;
-    els.input.focus();
-
-    if (resp && resp.success) {
-            addMsg('assistant', resp.data);
-    } else {
-      addMsg('assistant', '抱歉，出了点问题：' + (resp ? resp.error : '无响应'));
+  var streamContent = '';
+  var port = chrome.runtime.connect({ name: 'stream-general' });
+  port.postMessage({ history: chatHistory });
+  port.onMessage.addListener(function(msg) {
+    if (msg.type === 'token') {
+      streamContent += msg.content;
+      msgDiv.innerHTML = renderChatMD(streamContent);
+      els.messages.scrollTop = els.messages.scrollHeight;
+    } else if (msg.type === 'done') {
+      chatHistory.push({ role: 'assistant', content: streamContent });
+      els.input.disabled = false; els.sendBtn.disabled = false;
+      els.input.focus();
+    } else if (msg.type === 'error') {
+      msgDiv.innerHTML = renderChatMD('抱歉，出了点问题：' + msg.error);
+      chatHistory.push({ role: 'assistant', content: '抱歉，出了点问题：' + msg.error });
+      els.input.disabled = false; els.sendBtn.disabled = false;
+      els.input.focus();
     }
   });
 }
 
 els.sendBtn.addEventListener('click', send);
-els.speakInputBtn.addEventListener('click', function() {
-  var text = els.input.value.trim();
-  if (!text) return;
-  var btn = els.speakInputBtn;
-  if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; btn.classList.remove('speaking'); return; }
-  var u = new SpeechSynthesisUtterance(text);
-  u.lang = detectLang(text); u.rate = 0.9;
-  u.onstart = function(){ isSpeaking = true; btn.classList.add('speaking'); };
-  u.onend = u.onerror = function(){ isSpeaking = false; btn.classList.remove('speaking'); };
-  window.speechSynthesis.speak(u);
-});
 els.input.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });
@@ -81,7 +79,7 @@ function addMsg(role, content, isTyping) {
   div.className = 'msg ' + role;
   if (isTyping) div.classList.add('typing');
   div.innerHTML = renderChatMD(content);
-  els.messages.appendChild(div);
+  (els.messagesInner || els.messages).appendChild(div);
   els.messages.scrollTop = els.messages.scrollHeight;
   if (!isTyping) chatHistory.push({ role: role, content: content });
   return div;
@@ -98,65 +96,178 @@ function buildChatContent() {
   return lines.join('\n');
 }
 
+// Parse save path. Only the last segment ending with .md is treated as note name:
+//   "学习笔记/词汇.md" → folder="学习笔记", noteName="词汇"
+//   "学习笔记/英语/词汇.md" → folder="学习笔记/英语", noteName="词汇"
+//   "学习笔记/英语/词汇" (no .md) → folder="学习笔记/英语/词汇", auto-name.
+//   "学习笔记/" or "学习笔记" → folder path, auto-name.
+function parseSavePath(input) {
+  if (!input || !input.trim()) {
+    return { folder: '', noteName: '' };
+  }
+  var trimmed = input.trim();
+  if (trimmed.charAt(trimmed.length - 1) === '/') {
+    return { folder: trimmed, noteName: '' };
+  }
+  if (trimmed.indexOf('/') === -1) {
+    if (trimmed.toLowerCase().endsWith('.md')) {
+      return { folder: '', noteName: trimmed.slice(0, -3) };
+    }
+    return { folder: trimmed, noteName: '' };
+  }
+  var parts = trimmed.split('/');
+  var last = parts[parts.length - 1];
+  if (last.toLowerCase().endsWith('.md')) {
+    return { folder: parts.slice(0, -1).join('/'), noteName: last.slice(0, -3) };
+  }
+  return { folder: trimmed, noteName: '' };
+}
+
 function doSaveChat(way, btn) {
-  var saveContent = buildChatContent();
+  // Extract first user message and AI responses from chat history
+  var firstUserMsg = '';
+  var aiResponses = [];
+  for (var i = 0; i < chatHistory.length; i++) {
+    var m = chatHistory[i];
+    if (m.role === 'user' && !firstUserMsg) firstUserMsg = m.content;
+    if (m.role === 'assistant') aiResponses.push(m.content);
+  }
+  var explanationText = aiResponses.join('\n\n');
+
+  // Build fallback raw content
+  var fallbackContent = buildChatContent();
   var safeName = '对话记录_' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
+  var savePath = els.folderInput.value.trim();
+  var parsed = parseSavePath(savePath);
+  var effectiveFileName = parsed.noteName || safeName;
+
   var origText = btn.textContent;
   btn.textContent = '...'; btn.disabled = true;
 
-  if (way === 'obsidian') {
-    var folderOverride = els.folderInput.value.trim();
-    chrome.runtime.sendMessage({
-      action: 'saveToObsidian',
-      originalText: safeName,
-      explanation: saveContent,
-      sourceUrl: '',
-      folderOverride: folderOverride
-    }, function(resp) {
-      btn.disabled = false;
-      if (resp && resp.success && resp.data) {
-        btn.textContent = '✓ 已同步'; btn.classList.add('saved');
-        showToast('已保存到知识库');
-        setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
-      } else {
-        btn.textContent = origText;
-        showToast('保存失败：' + (resp ? resp.error : '无响应'));
-      }
-    });
-    return;
-  }
-
-  if (way === 'download') {
-    try {
-      var blob = new Blob([saveContent], { type: 'text/markdown;charset=utf-8' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = safeName + '.md';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      btn.textContent = '✓ 已下载'; btn.classList.add('saved');
-      showToast('已下载 Markdown 文件');
-      setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
-    } catch (e) {
-      btn.textContent = origText;
-      showToast('下载失败');
+  function executeSaveChat(noteTitle, noteTags, noteBody) {
+    if (way === 'obsidian') {
+      chrome.runtime.sendMessage({
+        action: 'saveToObsidian',
+        originalText: noteTitle || effectiveFileName,
+        explanation: noteBody,
+        sourceUrl: '',
+        folderOverride: parsed.folder,
+        tags: noteTags.join(', '),
+        customFileName: parsed.noteName || ''
+      }, function(resp) {
+        btn.disabled = false;
+        if (resp && resp.success && resp.data) {
+          if (resp.data.method === 'rest') {
+            btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+            showToast('已保存到知识库');
+            setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
+          } else if (resp.data.method === 'uri') {
+            // Obsidian 未运行，尝试通过 URI 打开
+            (function(uri) {
+              try {
+                var a = document.createElement('a');
+                a.href = uri; a.style.display = 'none'; a.target = '_blank';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+              } catch (e) {}
+              try {
+                var w = window.open(uri, '_blank');
+                if (w) w.close();
+              } catch (e) {}
+            })(resp.data.uri);
+            btn.textContent = '...'; showToast('正在连接 Obsidian...');
+            (function poll(attempts) {
+              setTimeout(function() {
+                chrome.runtime.sendMessage({
+                  action: 'saveToObsidian',
+                  originalText: noteTitle || effectiveFileName,
+                  explanation: noteBody,
+                  sourceUrl: '',
+                  folderOverride: parsed.folder,
+                  tags: noteTags.join(', '),
+                  customFileName: parsed.noteName || ''
+                }, function(retryResp) {
+                  btn.disabled = false;
+                  if (retryResp && retryResp.success && retryResp.data && retryResp.data.method === 'rest') {
+                    btn.textContent = '✓ 已同步'; btn.classList.add('saved');
+                    showToast('已保存到知识库');
+                    setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
+                  } else if (attempts < 20) {
+                    poll(attempts + 1);
+                  } else {
+                    btn.textContent = origText;
+                    showToast('保存失败：无法连接 Obsidian，请确认 Obsidian 已打开');
+                  }
+                });
+              }, 1000);
+            })(0);
+          }
+        } else {
+          btn.textContent = origText;
+          showToast('保存失败：' + (resp ? resp.error : '无响应'));
+        }
+      });
+      return;
     }
-    btn.disabled = false;
-    return;
+
+    var tagsLine = '';
+    if (noteTags.length > 0) {
+      tagsLine = '\n\n> 标签：' + noteTags.join('、');
+    }
+    var fullContent = '# ' + noteTitle + '\n\n' + noteBody + tagsLine;
+
+    if (way === 'download') {
+      try {
+        var safeName = noteTitle.replace(/[\\/:*?"<>|#\n\r]/g, '').trim().slice(0, 40) || '未命名';
+        var blob = new Blob([fullContent], { type: 'text/markdown;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = safeName + '.md';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        btn.textContent = '✓ 已下载'; btn.classList.add('saved');
+        showToast('已下载 Markdown 文件');
+        setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
+      } catch (e) {
+        btn.textContent = origText;
+        showToast('下载失败');
+      }
+      btn.disabled = false;
+      return;
+    }
+
+    if (way === 'clipboard') {
+      navigator.clipboard.writeText(fullContent).then(function() {
+        btn.textContent = '✓ 已复制'; btn.classList.add('saved');
+        showToast('已复制到剪贴板');
+        setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
+      }).catch(function() {
+        btn.textContent = origText;
+        showToast('复制失败');
+      });
+      btn.disabled = false;
+      return;
+    }
   }
 
-  if (way === 'clipboard') {
-    navigator.clipboard.writeText(saveContent).then(function() {
-      btn.textContent = '✓ 已复制'; btn.classList.add('saved');
-      showToast('已复制到剪贴板');
-      setTimeout(function() { btn.textContent = origText; btn.classList.remove('saved'); }, 2000);
-    }).catch(function() {
-      btn.textContent = origText;
-      showToast('复制失败');
-    });
-    btn.disabled = false;
-    return;
-  }
+  // Call AI note planning
+  chrome.runtime.sendMessage({
+    action: 'planNote',
+    originalText: firstUserMsg || '对话',
+    explanation: explanationText || fallbackContent,
+    history: chatHistory
+  }, function(resp) {
+    if (resp && resp.success) {
+      try {
+        var parsed = JSON.parse(resp.data);
+        if (parsed.title) {
+          executeSaveChat(parsed.title, parsed.tags || [], parsed.body || fallbackContent);
+          return;
+        }
+      } catch (e) {}
+    }
+    // Fallback: save raw chat content
+    executeSaveChat(effectiveFileName, [], fallbackContent);
+  });
 }
 
 els.saveObsidian.addEventListener('click', function() { doSaveChat('obsidian', els.saveObsidian); });

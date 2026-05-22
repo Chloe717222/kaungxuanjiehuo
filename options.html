@@ -73,8 +73,8 @@
         </div>
         <div class="field">
           <label for="obsidian-folder">新笔记保存到哪个位置 <span class="optional-tag">可选</span></label>
-          <input type="text" id="obsidian-folder" placeholder="例如：学习笔记/框选解惑 或 直接写文件夹名">
-          <span class="hint">支持多级路径，用 / 分隔。留空则保存在知识库根目录。</span>
+          <input type="text" id="obsidian-folder" placeholder="例如：学习笔记/框选解惑 或 学习笔记/框选解惑.md">
+          <span class="hint">支持多级路径，用 / 分隔。以 .md 结尾的末段为笔记名，否则整个路径为文件夹（自动生成笔记名）。留空则保存在知识库根目录。</span>
         </div>
         <div class="field">
           <label for="obsidian-vault">知识库名称 <span class="optional-tag">可选</span></label>
@@ -82,6 +82,72 @@
           <span class="hint">填笔记要放置的知识库名字。打开知识库软件 → 看窗口左上角标题栏或左下角状态栏，显示的那个库的名字。如 xx Obsidian。填这个是为了在插件不可用时，启动备用保存能定位到正确的知识库。如果只有一个知识库，不填通常也能用。</span>
         </div>
       </fieldset>
+
+      <fieldset>
+        <legend>对话提示词 <span class="optional-tag">可选</span></legend>
+
+        <div class="field">
+          <label>模式选择</label>
+          <div class="mode-chips" data-group="dialogue">
+            <button type="button" class="mode-chip active" data-mode="default">用默认设置</button>
+            <button type="button" class="mode-chip" data-mode="custom">自己写提示词</button>
+          </div>
+          <span class="hint">默认：用内置提示词，适合大多数人。自己写：告诉 AI 你希望它怎么回答你。留空 = AI 自由发挥。</span>
+        </div>
+
+        <div class="field custom-field" id="dialogue-custom-field" style="display:none;">
+          <div class="editor-header">
+            <label>你的提示词</label>
+            <button type="button" class="ai-helper-btn" data-target="dialogue" title="AI 帮你写">🤖 AI 帮我写</button>
+          </div>
+          <textarea class="prompt-editor" id="dialogue-prompt" rows="12" placeholder="告诉 AI 你希望它怎么回答你的问题，比如：&#10;- 用简单的话解释&#10;- 每次都要给例子&#10;- 用英文回答&#10;&#10;留空 = AI 自由发挥"></textarea>
+          <span class="hint">你写的提示词会告诉 AI 应该怎么回答你的问题。留空就让 AI 自己发挥。</span>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>笔记保存模板 <span class="optional-tag">可选</span></legend>
+
+        <div class="field">
+          <label>模式选择</label>
+          <div class="mode-chips" data-group="save">
+            <button type="button" class="mode-chip active" data-mode="default">用默认设置</button>
+            <button type="button" class="mode-chip" data-mode="custom">自己写规则</button>
+          </div>
+          <span class="hint">默认：标题用一句话概括，正文保留 AI 回答。自己写：让 AI 按你要求的格式整理笔记。</span>
+        </div>
+
+        <div class="field custom-field" id="save-custom-field" style="display:none;">
+          <div class="editor-header">
+            <label>你的规则</label>
+            <button type="button" class="ai-helper-btn" data-target="save" title="AI 帮你写">🤖 AI 帮我写</button>
+          </div>
+          <textarea class="prompt-editor" id="save-prompt" rows="12" placeholder="告诉 AI 笔记应该写成什么样，比如：&#10;1. 标题用一句核心的话&#10;2. 正文分要点写&#10;3. 最后加一个总结"></textarea>
+          <span class="hint">你写的规则决定 AI 怎么整理笔记内容。</span>
+        </div>
+      </fieldset>
+
+      <!-- AI 辅助生成对话框 -->
+      <div id="ai-helper-overlay" style="display:none;">
+        <div id="ai-helper-dialog">
+          <div class="ai-helper-header">
+            <span id="ai-helper-title">🤖 AI 辅助生成</span>
+            <span id="ai-helper-type-tag" class="ai-helper-tag"></span>
+            <button type="button" class="ai-helper-close">&times;</button>
+          </div>
+          <div class="ai-helper-body">
+            <div class="ai-helper-guide" id="ai-helper-guide"></div>
+            <div class="ai-helper-messages" id="ai-helper-messages"></div>
+          </div>
+          <div class="ai-helper-input-row">
+            <textarea id="ai-helper-input" rows="2" placeholder="描述你想要的效果，然后按 Enter 发送..."></textarea>
+            <button type="button" id="ai-helper-send">➡️</button>
+          </div>
+          <div class="ai-helper-footer">
+            <button type="button" id="ai-helper-fill" class="ai-helper-btn-primary" disabled>📥 填入编辑框</button>
+          </div>
+        </div>
+      </div>
 
       <div class="actions">
         <button type="submit" id="save-btn">保存设置</button>
