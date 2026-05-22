@@ -513,6 +513,9 @@
           titleExplain = selectedText;
           noteTags = '';
         }
+        // 把初始解释注入 chatHistory（不显示），追问自然携带上下文，零额外 token
+        chatHistory.push({ role: 'user', content: '帮我解释一下"' + selectedText + '"是什么意思' });
+        chatHistory.push({ role: 'assistant', content: explainData ? buildMarkdown(explainData) : initialExplanation });
         chatArea.style.display = 'block';
         chatInputRow.style.display = 'flex';
       } else if (msg.type === 'error') {
@@ -1565,6 +1568,9 @@
         } else {
           inst.titleExplain = word; inst.noteTags = '';
         }
+        // 把初始解释注入 chatHistory（不显示），追问自然携带上下文，零额外 token
+        inst.chatHistory.push({ role: 'user', content: '帮我解释一下"' + word + '"是什么意思' });
+        inst.chatHistory.push({ role: 'assistant', content: inst.explainData ? buildMarkdown(inst.explainData) : inst.initialExplanation });
         chatArea.style.display = 'block';
         chatInputRow.style.display = 'flex';
       } else if (msg.type === 'error') {

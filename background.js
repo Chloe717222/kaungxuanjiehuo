@@ -59,23 +59,17 @@ const NOTE_PLAN_PROMPT = `你是"框选解惑"的笔记规划师。根据用户�
 
 ${TAG_SYSTEM_RULES}
 
-结构要求：
-1. 标题是一句30字内的中文核心陈述句，包含可搜索的关键词，让人一眼知道内容
-2. 正文不要固定模板，根据内容类型灵活设计最佳结构：
-   - 概念类 → 原文 → 一句话总结 → 大白话解释 → 要点/例子
-   - 方法/流程类 → 原文 → 核心思路 → 步骤/操作 → 注意事项
-   - 术语/词条类 → 原文 → 翻译 → 解释 → 背景/来源
-   - 事件/人物类 → 原文 → 谁/是什么 → 为什么重要
-3. 正文第一部分必须是"原文"段落
-4. 正文用 ## 分节组织，不要重复标题
+目标：写一条自己过几天回看还能秒懂的笔记。
 
-重要规则（必须遵守）：
-- 如果对话很长，提炼最核心的内容，不要照搬原文或AI回复原文
-- 标题一定要抓住本次对话的具体主题，不得用"对话记录"或日期作标题
-- 不得以任何理由放弃结构化，始终输出完整的JSON
+怎么做你来判断。要点参考：
+- 标题30字内的核心陈述句，让人一眼知道在说什么，不要用名词短语或关键词堆砌
+- 正文提炼最核心的信息，把AI解释和追问转化为易读的笔记
+- 不用照搬原文或AI回复原文，用自己的话重组
+- "原文"段落只在读者不知道原文就读不懂笔记时才需要（比如英文词、生僻术语），反之可省略
+- 对话很长时挑最重要的写，别全都塞进去
 
-输出JSON格式（\`\`\`不要包裹，不加额外文字）：
-{"title":"核心句","tags":["类型/xx","主题/xx","状态/种子","难度/xx"],"body":"## 原文\\n内容...\\n\\n## 你的设计节\\n..."}
+输出JSON格式（不要\`\`\`包裹，不加额外文字）：
+{"title":"核心句","tags":["类型/xx","主题/xx","状态/种子","难度/xx"],"body":"## 节标题\\n内容..."}
 
 body字段中 \\n 代表换行，请正确转义。`;
 
@@ -307,12 +301,6 @@ async function callAIChat(originalText, explanation, history, question) {
     messages.push({ role: 'system', content: systemPrompt });
   }
 
-  // 注入框选上下文，让追问知道刚才解释过什么
-  if (originalText && explanation) {
-    messages.push({ role: 'user', content: '帮我解释一下"' + originalText + '"是什么意思' });
-    messages.push({ role: 'assistant', content: explanation });
-  }
-
   for (var i = 0; i < history.length; i++) {
     messages.push(history[i]);
   }
@@ -464,7 +452,7 @@ async function planNote(originalText, explanation, history) {
     systemPrompt = '用户有自己偏好的笔记格式要求，请尽量满足，同时必须遵守以下规则：\n\n'
       + TAG_SYSTEM_RULES
       + '\n\n用户格式要求：\n' + s.customSavePrompt.trim()
-      + '\n\n输出JSON格式：{"title":"核心句","tags":["类型/xx","主题/xx","状态/种子","难度/xx"],"body":"## 原文\\n...\\n\\n## 你的设计\\n..."}';
+      + '\n\n输出JSON格式：{"title":"核心句","tags":["类型/xx","主题/xx","状态/种子","难度/xx"],"body":"## 你的设计节\\n内容..."}';
   } else {
     systemPrompt = NOTE_PLAN_PROMPT;
   }
@@ -619,11 +607,6 @@ async function streamCallAIChat(originalText, explanation, history, question, po
 
   const messages = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
-  // 注入框选上下文，让追问知道刚才解释过什么
-  if (originalText && explanation) {
-    messages.push({ role: 'user', content: '帮我解释一下"' + originalText + '"是什么意思' });
-    messages.push({ role: 'assistant', content: explanation });
-  }
   for (var i = 0; i < history.length; i++) {
     messages.push(history[i]);
   }
