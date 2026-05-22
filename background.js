@@ -307,6 +307,12 @@ async function callAIChat(originalText, explanation, history, question) {
     messages.push({ role: 'system', content: systemPrompt });
   }
 
+  // 注入框选上下文，让追问知道刚才解释过什么
+  if (originalText && explanation) {
+    messages.push({ role: 'user', content: '帮我解释一下"' + originalText + '"是什么意思' });
+    messages.push({ role: 'assistant', content: explanation });
+  }
+
   for (var i = 0; i < history.length; i++) {
     messages.push(history[i]);
   }
@@ -613,6 +619,11 @@ async function streamCallAIChat(originalText, explanation, history, question, po
 
   const messages = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  // 注入框选上下文，让追问知道刚才解释过什么
+  if (originalText && explanation) {
+    messages.push({ role: 'user', content: '帮我解释一下"' + originalText + '"是什么意思' });
+    messages.push({ role: 'assistant', content: explanation });
+  }
   for (var i = 0; i < history.length; i++) {
     messages.push(history[i]);
   }
